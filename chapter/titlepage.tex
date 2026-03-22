@@ -1,0 +1,116 @@
+\begin{titlepage}
+  \thispagestyle{titlepage}
+  \begin{center}
+  {\LARGE \myuniversity}\\[5mm]
+  \begin{figure*}[h]
+   \hbox{}\hfill
+   \begin{minipage}[t]{9cm}
+			 \centering
+			 \includegraphics[width=7cm]{logos/OVGU_SIGN_druck.eps}
+   \end{minipage}
+   \hfill\hbox{}
+  \end{figure*}
+  {\large \myschool\\ \mydepartment}\\[10mm]
+  {\LARGE \kindOfThesis}\\[10mm]
+		%{\large\bf \titleOfThesis}\\[10mm]
+		{\Large\bf \titleOfThesis}\\[10mm]
+  {\small Author:}\\[1mm]
+  {\large \myfirstname~\mylastname}\\[5mm]
+  {\small \today}\\[15mm]
+  
+  \vspace{3cm}
+  \renewcommand{\arraystretch}{.9}
+  \begin{tabular}{cc}
+	\multicolumn{2}{c}{\small Advisers:} \\[1mm]
+	{\small Supervisor} & {\small Supervisor} \\
+	{\large Betreuer 1} & {\large Betreuer 2} \\[2mm]
+	{\small \myschool} 			 & {\small \myschool} \\
+	{\small \myuni} 			 & {\small \myuni} 	\\
+	{\small \myunistreet} 		 & {\small \myunistreet} \\
+	{\small \myunizipcity}		 & {\small \myunizipcity} 
+  \end{tabular}
+  
+		\renewcommand{\arraystretch}{1}
+  \end{center}
+\end{titlepage}
+
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{minipage}{.95\textwidth}
+\textbf{\mylastname,~\myfirstname:}\\
+\emph{\titleOfThesis}\\
+\kindOfThesis, \myuni \\
+\myplace, \myyear.
+\end{minipage}
+
+\cleardoublepage
+
+% =============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Inhaltsverzeichnis
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+%\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
+%\listoffigures
+
+%\addcontentsline{toc}{chapter}{Tabellenverzeichnis}
+%\listoftables
+
+%\addcontentsline{toc}{chapter}{Algorithmenverzeichnis}
+%\listofalgorithms
+%\todo{Anleitung Algorithmen schreiben: \url{http://en.wikibooks.org/wiki/LaTeX/Algorithms}}
+
+\cleardoublepage
+% =============================================================================
+
+\phantomsection
+\section*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+englisch summary of this work
+
+
+\cleardoublepage
+% =============================================================================
+
+
+\thispagestyle{plain}
+\phantom{.}
+\vspace{70mm}
+
+\begin{center}
+	\todo[inline]{This section is optional! It is basically an motivational cite for this work as it can be found in many books. Example is provided}
+	\textit{
+		\vspace{0.5cm}
+		The validation of clustering structures is \\
+		the most difficult and frustrating part of cluster analysis. \\ 
+		\vspace{0.5cm}
+		Without a strong effort in this direction, \\
+		cluster analysis will remain a black art 
+		accessible only to those \\
+		true believers who have experience and great courage.}
+\end{center}
+\begin{flushright}
+%	\citet{Jain1988}
+	Anil K. Jain and Richard C. Dubes
+\end{flushright}
+
+%\uselengthunit{mm}
+%textwidth=\printlength{\textwidth}\\
+%textheight=\printlength{\textheight}\\
+%top=\printlength{\top}\\
+
+\cleardoublepage
+% =============================================================================
+
+
+\thispagestyle{plain}
+\section*{Acknowledgements}
+\todo[inline]{This section is optional!}
+
+\cleardoublepage
+% =============================================================================
+

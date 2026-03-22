@@ -1,0 +1,100 @@
+\chapter{Background and Literature Review}
+\label{ch:background}
+
+This chapter establishes the theoretical and evolutionary foundation for the methodologies engineered in this thesis. It dictates the trajectory of document intelligence, charting the transition from heuristic Optical Character Recognition (OCR) grids to modern, parameter-efficient Vision-Language Models (VLMs). Crucially, this chapter details the architectural mechanics of the predecessor technologies utilized within the pipeline (RT-DETR, TATR, and LoRA), explaining precisely how these specific algorithms evolved to supersede legacy deep learning paradigms.
+
+\section{The Evolution of Document Layout Analysis}
+\label{sec:layout_evolution}
+
+The foundational task of interpreting Visually Rich Documents (VRDs) is Document Layout Analysis (DLA)---the geometric isolation of semantic regions such as text paragraphs, titles, tables, and figures. 
+
+\subsection{Heuristic and Convolutional Paradigms}
+Historically, DLA relied entirely on bottom-up heuristic algorithms, such as horizontal projection profiles and Connected Component Analysis (CCA). While computationally inexpensive, these pixel-sweeping methods exhibited catastrophic failure when applied to semi-structured industrial documents featuring multi-column layouts or intersecting graph borders. 
+
+The paradigm shifted significantly with the integration of Convolutional Neural Networks (CNNs). Architectures such as Faster R-CNN conceptualized DLA strictly as an object detection problem. Utilizing a Region Proposal Network (RPN), the model generated thousands of anchor boxes, which were subsequently refined via convolutional feature pooling. While robust, Faster R-CNN fundamentally suffered from a lack of global contextual awareness. Its localized convolutional kernels struggled to identify massive geometric relationships spanning the entire document page (e.g., properly bounding an engineering schematic that spans two columns).
+
+\subsection{Detection Transformers (DETR)}
+To resolve the contextual limitations of CNNs, the industry transitioned to the Detection Transformer (DETR) paradigm. DETR entirely abolished the necessity for hand-crafted anchor boxes and Non-Maximum Suppression (NMS) thresholds. 
+
+As depicted in Figure \ref{fig:detr_evolution}, DETR utilizes a backbone (typically ResNet) to extract a localized spatial feature map. However, instead of passing this map to an RPN, the flattened map is injected into a standard Transformer Encoder-Decoder architecture \cite{detr_carion}. The self-attention mechanism enables the model to reason globally across the entire bounding box distribution simultaneously. 
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm and 1cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
+    arrow/.style={->, thick, >=stealth}
+]
+
+\node[box, fill=gray!10] (img) {Document Page Tensor\\$1024 \times 1024$};
+\node[box, below=1cm of img, fill=blue!10] (cnn) {CNN Backbone\\Feature Extraction};
+\node[box, below=1cm of cnn, fill=red!10] (encoder) {Transformer Encoder\\(Global Self-Attention)};
+\node[box, below=1cm of encoder, fill=orange!10] (decoder) {Transformer Decoder\\(Object Queries)};
+\node[box, below=1cm of decoder, fill=green!10] (ffn) {Feed-Forward Heads\\(BBox \& Class)};
+
+\draw[arrow] (img) -- (cnn);
+\draw[arrow] (cnn) -- (encoder);
+\draw[arrow] (encoder) -- (decoder);
+\draw[arrow] (decoder) -- (ffn);
+
+\end{tikzpicture}
+\caption{The classic Detection Transformer (DETR) architecture. By bypassing CNN anchor boxes, the globally attentive transformer accurately predicts coordinate geometry across highly complex page layouts.}
+\label{fig:detr_evolution}
+\end{figure}
+
+The ingestion framework proposed in this thesis specifically utilizes RT-DETR (Real-Time DETR), an accelerated derivative that mitigates the quadratic computational complexity of the standard Transformer encoder. This grants the pipeline real-time Layout Understanding while preserving flawlessly comprehensive visual context.
+
+\section{Table Structure Recognition (TSR) Architectures}
+\label{sec:tsr_limits}
+
+Once the global layout bounding boxes are predicted, the isolated tabular grids must be reconstructed into machine-readable arrays. Table Structure Recognition (TSR) is notoriously complex due to the absence of explicit, continuous grid lines characterizing modern technical datasheets.
+
+\subsection{The Table Transformer (TATR)}
+Drawing profound inspiration from the global context abilities of DETR layout analysis, Smock et al. introduced the Table Transformer (TATR) \cite{tatr}. TATR treats internal tabular alignment identically to standard object detection. It predicts individual coordinate matrices for tabular rows, columns, and spanning cells directly from the isolated table crop tensor.
+
+While TATR demonstrates unprecedented precision regarding clean matrices, it possesses a highly-documented failure state addressed explicitly in Chapter 5. Because TATR relies exclusively on observing geometric alignment lines and whitespace, embedding an engineering schematic diagram (with dense internal axes) within a table causes the Transformer to hallucinate cross-sectional geometric structures, aggressively shattering its own topological coordinate generation. This failure completely mandates the engineering of deterministic Semantic Masking algorithms prior to execution.
+
+\section{Vision-Language Models (VLMs) and Generative Grids}
+\label{sec:vlms}
+
+For implicit tabular structures devoid of mechanical grid boundaries (such as 2-column key-value alignments), visual object detection fails. The integration of continuous Vision-Language Models (VLMs) explicitly resolves this via zero-shot logical reasoning.
+
+Modern VLMs (e.g., LLaMA-Vision, Qwen-VL) construct continuous vector spaces bridging visual embeddings with massive auto-regressive language decoders \cite{llm_extraction}. Unlike deterministic coordinate predictors, VLMs can intelligently "read" parameters (e.g., "Max Output Voltage") and dynamically generate programmatic tabular arrays directly into string memory. 
+
+However, generic VLMs are highly conversational. When tasked with strict deterministic schema generation, they frequently inject conversational filler (e.g., "Here is your data:"). Furthermore, much like TATR's geometrical interference, a VLM frequently succumbs to "semantic hallucination," reading numeric parameters located physically inside an embedded graphic and attempting to parse them as tabular grid conditions.
+
+\section{Parameter-Efficient Fine-Tuning (PEFT)}
+\label{sec:peft}
+
+To forcefully counteract generative VLM hallucination, the models must be specialized via Knowledge Distillation. However, fully fine-tuning an enormous framework like LLaMA-3-11B demands impossible hardware thresholds.
+
+\subsection{The Mechanics of Low-Rank Adaptation (LoRA)}
+To circumvent Data Center GPU requirements, this thesis implements Low-Rank Adaptation (LoRA) \cite{lora}. Traditional fine-tuning modifies the dense pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times d}$. LoRA mathematically freezes $W_0$ entirely, injecting two drastic decomposition matrices, $A$ and $B$, possessing a constrained rank dimensionality $r$ (Figure \ref{fig:lora_architecture}).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
+    arrow/.style={->, thick, >=stealth}
+]
+
+\node[box, fill=red!10, minimum width=4cm, minimum height=1.5cm] (w0) {Pre-trained Weight Matrix\\$W_0 \in \mathbb{R}^{d \times d}$ (Frozen)};
+
+\node[box, right=2cm of w0, fill=blue!10, minimum width=1.5cm, minimum height=2.5cm] (a) {$A \in \mathbb{R}^{r \times d}$};
+\node[box, right=2.5cm of a, fill=green!10, minimum width=2.5cm, minimum height=1.5cm] (b) {$B \in \mathbb{R}^{d \times r}$};
+
+\draw[arrow] (a) -- node[above] {$\times$} (b);
+
+\node[below=0.5cm of a, align=center] {Trainable\\Down-projection ($r \ll d$)};
+\node[below=0.5cm of b, align=center] {Trainable\\Up-projection};
+
+\node[above=0.2cm of w0] {$h = W_0 x$};
+\node[above left=0.6cm and -1.5cm of b] {$+ \Delta W x$};
+
+\end{tikzpicture}
+\caption{LoRA Architecture. By freezing $W_0$ and training heavily compressed rank-decomposition networks $A$ and $B$, the optimization drastically eviscerates VRAM derivative memory generation while preserving inferential logic.}
+\label{fig:lora_architecture}
+\end{figure}
+
+The rank constraint $r \ll d$ inherently guarantees that the trainable gradient parameters diminish by over 98\%. By coordinating LoRA through heavily optimized CUDA memory kernels (e.g., Unsloth), the visual reasoning capabilities required for structural mapping are surgically distilled into an architecture capable of running exclusively on a commercial 24GB VRAM target, successfully closing the deployment integration loop.

@@ -1,0 +1,97 @@
+\chapter{The Routing Engine and VLM Specialists}
+\label{ch:routing_vlm}
+
+Once a multi-page industrial document has been successfully processed through the Layout Detection phase, the resulting geometric bounding boxes must be interpreted. For generic text paragraphs, standard text primitives are structurally sufficient. However, tabular data within engineering datasheets exists across a vast spectrum of typological complexity. 
+
+This chapter details the architecture of the Algorithmic Routing Engine developed in this thesis. By computing vector line densities and geometrical word-gap ratios, the router dynamically classifies tabular instances and dispatches them to distinct inferential systems: generic 2-column key-value extractors, complex Table Structure Recognition (TSR) grids, or highly-prompted Generative Vision-Language Specialists. Furthermore, this section rigorously details the XML-tagging prompt engineering deployed to constrain Generative models.
+
+\section{The Algorithmic Router}
+\label{sec:router_logic}
+
+Industrial tables generally manifest in three structural configurations: Ruled grids (explicitly boxed matrices), Key-Value pairs (implicit 2-column alignments), and Complex grids (multi-lane tables often embedding external graphical structures). Applying a massive generative Vision-Language Model to a perfectly ruled 50-row table incurs unacceptable latency and massive hallucination risk. Conversely, applying an implicit spatial algorithm to a 3-lane technical table fails catastrophically.
+
+To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter}, computes mathematical heuristics based on the native topological primitives (words and drawing vectors) residing within a defined geometric bounding box. The orchestrator generates two primary continuous values: $S_{\text{ruled}}$ and $S_{\text{kv}}$.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1cm and 1.5cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
+    decision/.style={diamond, draw, thick, align=center, aspect=2, minimum width=3cm},
+    arrow/.style={->, thick, >=stealth}
+]
+
+\node[box] (input) {Table Bounding Box $B_{table}$};
+\node[box, below=0.8cm of input] (primitives) {Extract Text \&\\Drawing Primitives};
+\node[box, below=0.8cm of primitives] (scores) {Compute $S_{ruled}$,\\$S_{kv}$, \& $Gaps$};
+
+\node[decision, below=1cm of scores] (is_tech) {Technical Anchors\\$\lor$ Multiple Gaps?};
+\node[decision, below=1.5cm of is_tech] (is_ruled) {$S_{ruled} > 0.4$?};
+\node[decision, below=1.5cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
+
+\node[box, right=2cm of is_tech, fill=red!10] (tsr) {\textbf{TSR / Masking}\\(TableType.COMPLEX)};
+\node[box, right=2cm of is_ruled, fill=blue!10] (ruled) {\textbf{Deterministic Grid}\\(TableType.RULED)};
+\node[box, right=2cm of is_kv, fill=green!10] (vlm) {\textbf{Specialist VLM}\\(TableType.VLM)};
+
+\draw[arrow] (input) -- (primitives);
+\draw[arrow] (primitives) -- (scores);
+\draw[arrow] (scores) -- (is_tech);
+
+\draw[arrow] (is_tech) -- node[above] {Yes} (tsr);
+\draw[arrow] (is_tech) -- node[left] {No} (is_ruled);
+
+\draw[arrow] (is_ruled) -- node[above] {Yes} (ruled);
+\draw[arrow] (is_ruled) -- node[left] {No} (is_kv);
+
+\draw[arrow] (is_kv) -- node[above] {Yes} (vlm);
+\draw[arrow] (is_kv) -- node[left] {No} (tsr);
+
+\end{tikzpicture}
+\caption{The algorithmic decision tree for the Hierarchical Table Router. Instead of relying on monolithic LLMs for classification, this framework utilizes robust mathematical vector densities and whitespace gap intervals to perfectly route tables to specialized logic.}
+\label{fig:router_flow}
+\end{figure}
+
+\subsection{Vector Line Density Scoring}
+To determine if a tabular bounding box contains a discrete physical grid, the router calculates the cumulative Euclidean length of all valid horizontal and vertical drawing primitives ($D$). Let $B$ represent the table bounding box with width $w$ and height $h$. The perimeter is defined as $P = 2(w + h)$. The ruled score $S_{\text{ruled}}$ is normalized against the bounded perimeter:
+
+\begin{equation}
+S_{\text{ruled}} = \min \left( 1.0, \frac{\sum_{d \in D} \text{length}(d)}{2(w + h)} \right)
+\end{equation}
+
+If $S_{\text{ruled}} > R_{threshold}$, the bounding box is immediately classified as a physically ruled table, triggering deterministic row-column projection parsing.
+
+\subsection{Maximum Gap Ratio Scoring}
+For technical datasheets heavily utilizing implicit Key-Value mappings (e.g., "Operating Voltage | 24 V DC"), physical lines are entirely absent. To detect this 2-column configuration without relying on an LLM, the router analyzes the geometric distribution of the textual nodes.
+
+Let $X$ represent the sorted array of the geometric $X$-centers corresponding to every word bounding box within the table. The continuous gaps $G$ between adjacent words are computed. The maximum topological gap $g_{max}$ and its positional ratio relative to the table width $w$ form the basis of the key-value score $S_{\text{kv}}$:
+
+\begin{equation}
+S_{\text{kv}} = 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \right)
+\end{equation}
+
+The balance factor, $B_{factor}$, calculates the symmetric distribution of text nodes residing left or right of $g_{max}$. If a table yields a highly imbalanced distribution or exhibits multiple significant gaps ($n \geq 2$), the router detects a complex multi-metric grid, bypassing the VLM and forcing the table to the Semantic Pre-Masking TSR framework detailed in Chapter 5.
+
+\section{Specialist VLM Extractor and XML Constraints}
+\label{sec:vlm_specialist}
+
+When the router encounters a high-scoring 2-column structure ($S_{\text{kv}} > K_{threshold}$), the bounding box is physically rendered to an isolated RGB tensor and submitted to the isolated Vision-Language Extractor layer. Although modern Generative VLMs demonstrate high comprehension, they exhibit notorious volatility regarding structural formatting, frequently outputting conversational prose instead of machine-readable grid codes.
+
+\subsection{XML-Tag Prompt Engineering}
+To mathematically force deterministic grid generation, this thesis implements a rigid XML-tagging hierarchy embedded within the model's system prompt. The model is forbidden from utilizing standard Markdown pipes ($|$), instead constrained to output sequential rows demarcated precisely by standard markup strings:
+
+\begin{verbatim}
+<ROW>
+  <P>Parameter Node</P>
+  <C>Conditional Node</C>
+  <V>Value Node</V>
+</ROW>
+\end{verbatim}
+
+By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. Even if the generated syntax contains erroneous conversational prefixing ("Here is your data:"), the downstream pipeline precisely extracts the matched `<ROW>` groups, ensuring perfect programmatic mapping to the final structured response.
+
+\subsection{Eradicating Generative Topological Hallucination}
+The most pernicious failure state in visual grid reconstruction occurs when a standard VLM processes a technical table encapsulating a visual diagram (e.g., an embedded sensor wiring schematic). Standard instruction-tuned models recursively attempt to OCR the diagram's internal axes or numeric labels, creating endlessly hallucinated, unsynchronized tabular rows. 
+
+To surgically mitigate this hallucination loop, the XML constraint strategy is augmented with a categorical override variable. The VLM inference generation prompt defines a critical exit condition: \textit{If a row contains a FIGURE or DIAGRAM, absolutely ignore all internal text and structural coordinates. Output \texttt{<V>[TECHNICAL\_GRAPH]</V>} and cease iteration.} 
+
+This semantic intervention proves phenomenally successful. Empirical evaluation reveals that providing the Generative model with an explicit semantic exit-tag dramatically suppresses its latent drive to infinitely parse arbitrary graphical lines, effectively stabilizing the 2-column key-value extraction pipeline.
