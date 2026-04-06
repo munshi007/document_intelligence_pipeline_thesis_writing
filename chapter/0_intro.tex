@@ -35,17 +35,17 @@ To ensure the multi-modal framework executes without relying on latency-heavy pr
 This thesis is organized sequentially, following the flow of geometric data through the multi-modal extraction pipeline:
 
 \begin{itemize}
-    \item \textbf{Chapter 1: Background and Related Work} examines the evolution of Vision-Language Models, the geometric limitations of Table Structure Recognition (TSR), and the computational requirements of Parameter-Efficient Fine-Tuning (PEFT).
+    \item \textbf{Chapter 2: Background and Related Work} examines the evolution of Vision-Language Models, the geometric limitations of Table Structure Recognition (TSR), and the computational requirements of Parameter-Efficient Fine-Tuning (PEFT).
 
-    \item \textbf{Chapter 2: Layout Intelligence and Reading Order} details the foundational architecture of the ingestion phase, formalizing the DocLayout-YOLO detection and the hybrid use of native PDF primitives and VLM verification.
+    \item \textbf{Chapter 3: Layout Intelligence and Reading Order} details the foundational architecture of the ingestion phase, formalizing the DocLayout-YOLO detection and the hybrid use of native PDF primitives and VLM verification.
 
-    \item \textbf{Chapter 3: The Routing Engine and Structured Extraction} analyzes the table classification logic and documents the transition to Pydantic-validated JSON extraction for specialized industrial taxonomies.
+    \item \textbf{Chapter 4: The Routing Engine and Structured Extraction} analyzes the table classification logic and documents the transition to Pydantic-validated JSON extraction for specialized industrial taxonomies.
 
-    \item \textbf{Chapter 4: Semantic Context and Knowledge Graphs} describes the 3-pass HKG construction algorithm and the Semantic Pre-Masking technique used to resolve table hallucinations.
+    \item \textbf{Chapter 5: Semantic Context and Knowledge Graphs} describes the 3-pass HKG construction algorithm and the Semantic Pre-Masking technique used to resolve table hallucinations.
 
-    \item \textbf{Chapter 5: Custom Model Distillation (PEFT)} documents the precise hyperparameters and empirical training metrics required to distill the Llama-Vision 11B student model.
+    \item \textbf{Chapter 6: Custom Model Distillation (PEFT)} documents the precise hyperparameters and empirical training metrics required to distill the Llama-Vision 11B student model.
 
-    \item \textbf{Chapter 6: Experimental Evaluation} presents the performance metrics of the pipeline across industrial datasets, comparing accuracy, latency, and extraction fidelity against baseline systems.
+    \item \textbf{Chapter 7: Experimental Evaluation} presents the performance metrics of the pipeline across industrial datasets, comparing accuracy, latency, and extraction fidelity against baseline systems.
 
-    \item \textbf{Chapter 7: Conclusions and Future Work} summarizes the research contributions and outlines future directions for scale-up and model specialization.
+    \item \textbf{Chapter 8: Conclusions and Future Work} summarizes the research contributions and outlines future directions for scale-up and model specialization.
 \end{itemize}
