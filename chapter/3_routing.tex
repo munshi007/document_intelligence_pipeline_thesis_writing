@@ -28,7 +28,7 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \node[decision, below=1.2cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
 
 \node[box, right=1.5cm of is_ruled, fill=blue!10] (ruled) {Deterministic\\Grid Extractor};
-\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Specialist VLM\\(JSON Mode)};
+\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Specialist VLM\\(XML Prompting)};
 
 \node[box, below=1.2cm of is_kv, fill=red!10] (tsr) {Complex TSR\\\& Masking};
 
@@ -74,15 +74,23 @@ S_{\text{kv}} = 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \ri
 
 The balance factor, $B_{factor}$, calculates the symmetric distribution of text nodes residing left or right of $g_{max}$. If a table yields a highly imbalanced distribution or exhibits multiple significant gaps ($n \geq 2$), the router detects a complex multi-metric grid, bypassing the VLM and forcing the table to the Semantic Pre-Masking TSR framework detailed in Chapter 5.
 
-\section{Structured Extraction via JSON Schemas}
+\section{Specialist VLM Extractor and Hybrid XML-JSON Formatting}
 \label{sec:vlm_specialist}
 
-When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor. Unlike general-purpose chat models, the extractor used in this pipeline is constrained to produce output that adheres monotonically to a predefined Pydantic schema.
+When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor. Unlike general-purpose chat models, the extractor used in this pipeline combines strict XML-tagging for structural grid alignment with Pydantic JSON schemas for final data validation.
 
-\subsection{Constrained Generation and JSON Mode}
-To ensure the output is machine-readable and semantically valid, the pipeline utilizes "JSON Mode" combined with strict schema definitions \cite{json_mode}. The extractor receives a system prompt containing a technical taxonomy (e.g., the \textit{LibrarianUniversalHardware} schema) and is instructed to populate only the fields identified within the document.
+\subsection{XML-Tag Prompt Engineering for Grid Alignment}
+To mathematically force deterministic grid generation without JSON hallucination loops, the Local VLM Specialist uses a rigid XML-tagging hierarchy embedded within its system prompt. The model is forbidden from utilizing standard Markdown pipes ($|$), instead constrained to output sequential rows demarcated precisely by standard markup strings:
 
-This approach offers two advantages over legacy XML-tagging. First, it enables complex nested structures, such as pin-to-signal assignments for industrial connectors, which are difficult to parse with regular expressions in XML formats. Second, it allows for type-level validation; the pipeline can verify that "Supply Voltage" is a numeric range rather than an arbitrary string at the point of inference.
+\begin{verbatim}
+<ROW>
+  <P>Parameter Node</P>
+  <C>Conditional Node</C>
+  <V>Value Node</V>
+</ROW>
+\end{verbatim}
+
+By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. This ensures perfect programmatic mapping to the final structured Pydantic response, preventing the deep nesting crashes common with raw JSON generation in smaller models.
 
 \section{Extraction Quality Assurance and Adaptive Retry}
 \label{sec:qa_layer}
@@ -90,7 +98,7 @@ This approach offers two advantages over legacy XML-tagging. First, it enables c
 A significant contribution of this architecture is the secondary verification layer that follows every extraction attempt. Rather than assuming the first extraction is correct, the \textit{QA Coordinator} evaluates two precision metrics: \textbf{Coverage} and \textbf{Duplication}.
 
 \subsection{Coverage and Duplication Metrics}
-The coverage metric measures the ratio of source text tokens successfully mapped into the resulting JSON structure. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure.
+The coverage metric measures the ratio of source text tokens successfully mapped into the resulting structure. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure.
 
 Conversely, the duplication metric detects instances where the model "stutters" or recursively generates the same row multiple times --- a common failure mode in sequence-to-sequence document models. Let $E$ be the set of extracted records. The duplication score $S_{dup}$ is defined as the frequency of redundant entries normalized by the total count. If $S_{dup} > 0.05$ or Coverage $< 0.90$, the extraction is rejected.
 

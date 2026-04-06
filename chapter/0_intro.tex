@@ -21,7 +21,7 @@ This objective is systematically achieved through the following technical contri
 This research evaluates the application of DocLayout-YOLO transformers to isolate geometric document regions. Rather than relying on generative approximation, the pipeline employs a combination of native PDF primitive extraction and VLM-based reading order verification, providing high-fidelity spatial sequencing. 
 
 \textbf{2. Algorithmic Routing and Structured Extraction:}
-To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or specialist VLMs. The research details the transition from XML-tagging to structured JSON extraction utilizing Pydantic schemas for improved validation.
+To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or specialist VLMs. The research details a hybrid extraction strategy, combining XML-tagging for strict spatial table alignment with structured JSON generation via Pydantic schemas for final output validation.
 
 \textbf{3. Semantic Context and Knowledge Graphs:}
 This research introduces a Hierarchical Knowledge Graph (HKG) architecture to preserve the multi-modal "connective tissue" of industrial documents. By implementing a 3-pass construction algorithm with breadcrumb propagation, the pipeline ensures that every extracted text chunk carries its full semantic provenance, optimizing it for downstream RAG applications.
