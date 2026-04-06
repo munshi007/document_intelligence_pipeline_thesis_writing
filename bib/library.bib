@@ -1,9 +1,107 @@
+% ── Layout Analysis & Detection ──────────────────────────────────────────────
+
+@inproceedings{detr_carion,
+  title={End-to-End Object Detection with Transformers},
+  author={Carion, Nicolas and Massa, Francisco and Synnaeve, Gabriel and Usunier, Nicolas and Kirillov, Alexander and Zagoruyko, Sergey},
+  booktitle={European Conference on Computer Vision (ECCV)},
+  pages={213--229},
+  year={2020},
+  organization={Springer}
+}
+
+@inproceedings{rtdetr_lv,
+  title={{DETRs} Beat {YOLOs} on Real-time Object Detection},
+  author={Lv, Wenyu and Xu, Shangliang and Zhao, Yian and Wang, Guanzhong and Wei, Jinman and Cui, Cheng and Du, Yuning and Dang, Qingqing and Liu, Yi},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={16965--16974},
+  year={2024}
+}
+
+@article{doclayout_yolo,
+  title={{DocLayout-YOLO}: Enhancing Document Layout Analysis through Diverse Synthetic Data and Global-to-Local Adaptive Perception},
+  author={Zhao, Zhiyuan and Wang, Hengrui and Jiang, Ping and others},
+  journal={arXiv preprint arXiv:2410.12628},
+  year={2024}
+}
+
+@inproceedings{layoutlmv3,
+  title={{LayoutLMv3}: Pre-training for Document {AI} with Unified Text and Image Masking},
+  author={Huang, Yupan and Lv, Tengchao and Cui, Lei and Lu, Yutong and Wei, Furu},
+  booktitle={Proceedings of the 30th ACM International Conference on Multimedia},
+  pages={4083--4091},
+  year={2022}
+}
+
+@inproceedings{publaynet,
+  title={{PubLayNet}: Largest Dataset ever for Document Layout Analysis},
+  author={Zhong, Xu and Tang, Jianbin and Yepes, Antonio Jimeno},
+  booktitle={2019 International Conference on Document Analysis and Recognition (ICDAR)},
+  pages={1015--1022},
+  year={2019},
+  organization={IEEE}
+}
+
+@inproceedings{xycut_ogorman,
+  title={The document spectrum for page layout analysis},
+  author={O'Gorman, Lawrence},
+  booktitle={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume={15},
+  number={11},
+  pages={1162--1173},
+  year={1993},
+  organization={IEEE}
+}
+
+% ── OCR and Text Extraction ───────────────────────────────────────────────────
+
+@inproceedings{docbank,
+  title={{DocBank}: A Benchmark Dataset for Document Layout Analysis},
+  author={Li, Minghao and Xu, Yiheng and Cui, Lei and Huang, Shaohan and Wei, Furu and Li, Zhe and Zhou, Ming},
+  booktitle={Proceedings of the 28th International Conference on Computational Linguistics (COLING)},
+  pages={949--960},
+  year={2020}
+}
+
+% ── Language and Vision-Language Models ──────────────────────────────────────
+
 @inproceedings{layoutlm,
   title={LayoutLM: Pre-training of Text and Layout for Document Image Understanding},
   author={Xu, Yiheng and Li, Minghao and Cui, Lei and Huang, Shaohan and Wei, Furu and Zhou, Ming},
   booktitle={Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
   pages={1192--1200},
   year={2020}
+}
+
+@article{llm_extraction,
+  title={{Qwen-VL}: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond},
+  author={Bai, Jinze and Bai, Shuai and Yang, Shusheng and Wang, Shijie and Tan, Sinan and Wang, Peng and Lin, Junyang and Zhou, Chang and Zhou, Jingren},
+  journal={arXiv preprint arXiv:2308.12966},
+  year={2023}
+}
+
+@article{qwen25,
+  title={{Qwen2.5} Technical Report},
+  author={Qwen Team},
+  journal={arXiv preprint arXiv:2412.15115},
+  year={2024}
+}
+
+@techreport{gpt4v,
+  title={{GPT-4} Technical Report},
+  author={{OpenAI}},
+  institution={OpenAI},
+  year={2023},
+  note={arXiv preprint arXiv:2303.08774}
+}
+
+% ── Table Structure Recognition ───────────────────────────────────────────────
+
+@inproceedings{tatr,
+  title={{PubTables-1M}: Towards Comprehensive Table Extraction from Unstructured Documents},
+  author={Smock, Brandon and Pesala, Rohith and Abraham, Robin},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={4634--4642},
+  year={2022}
 }
 
 @article{gcn_vrd,
@@ -13,24 +111,72 @@
   year={2021}
 }
 
-@article{llm_extraction,
-  title={Qwen-VL: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond},
-  author={Bai, Jinze and Bai, Shuai and Yang, Shusheng and Wang, Shijie and Tan, Sinan and Wang, Peng and Lin, Junyang and Zhou, Chang and Zhou, Jingren},
-  journal={arXiv preprint arXiv:2308.12966},
-  year={2023}
-}
-
-@inproceedings{tatr,
-  title={PubTables-1M: Towards comprehensive table extraction from unstructured documents},
-  author={Smock, Brandon and Pesala, Rohith and Abraham, Robin},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={4634--4642},
-  year={2022}
-}
+% ── Knowledge Distillation and PEFT ──────────────────────────────────────────
 
 @article{lora,
-  title={LoRA: Low-Rank Adaptation of Large Language Models},
+  title={{LoRA}: Low-Rank Adaptation of Large Language Models},
   author={Hu, Edward J and Shen, Yelong and Wallis, Phil and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
   journal={arXiv preprint arXiv:2106.09685},
   year={2021}
+}
+
+@inproceedings{knowledge_distill,
+  title={Distilling the Knowledge in a Neural Network},
+  author={Hinton, Geoffrey and Vinyals, Oriol and Dean, Jeff},
+  booktitle={NIPS Deep Learning and Representation Learning Workshop},
+  year={2015}
+}
+
+@inproceedings{peft_houlsby,
+  title={Parameter-Efficient Transfer Learning for {NLP}},
+  author={Houlsby, Neil and Giurgiu, Andrei and Jastrzebski, Stanislaw and Morrone, Bruna and de Laroussilhe, Quentin and Gesmundo, Andrea and Attariyan, Mona and Gelly, Sylvain},
+  booktitle={Proceedings of the 36th International Conference on Machine Learning (ICML)},
+  pages={2790--2799},
+  year={2019}
+}
+
+% ── Reasoning and Prompting ───────────────────────────────────────────────────
+
+@inproceedings{chain_of_thought,
+  title={Chain-of-Thought Prompting Elicits Reasoning in Large Language Models},
+  author={Wei, Jason and Wang, Xuezhi and Schuurmans, Dale and Bosma, Maarten and Xia, Fei and Chi, Ed and Le, Quoc V and Zhou, Denny},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+  volume={35},
+  pages={24824--24837},
+  year={2022}
+}
+
+@article{json_mode,
+  title={Improving Factuality and Reasoning in Language Models through Multiagent Debate},
+  author={Du, Yilun and Li, Shuang and Torralba, Antonio and Tenenbaum, Joshua B and Mordatch, Igor},
+  journal={arXiv preprint arXiv:2305.14325},
+  year={2023}
+}
+
+% ── Retrieval-Augmented Generation ───────────────────────────────────────────
+
+@inproceedings{rag_lewis,
+  title={Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
+  author={Lewis, Patrick and Perez, Ethan and Piktus, Aleksandra and Petroni, Fabio and Karpukhin, Vladimir and Goyal, Naman and K\"{u}ttler, Heinrich and Lewis, Mike and Yih, Wen-tau and Rockt\"{a}schel, Tim and others},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+  volume={33},
+  pages={9459--9474},
+  year={2020}
+}
+
+% ── Document Intelligence Surveys ────────────────────────────────────────────
+
+@article{docai_survey,
+  title={A Survey on Document Image Understanding: Reading Order, Information Extraction and Beyond},
+  author={Ma, Chuwei and Zhong, Zining and Zhang, Zi and others},
+  journal={arXiv preprint arXiv:2207.14350},
+  year={2022}
+}
+
+@inproceedings{doctr,
+  title={{docTR}: Document Text Recognition},
+  author={{Mindee}},
+  booktitle={GitHub Repository},
+  year={2021},
+  note={\url{https://github.com/mindee/doctr}}
 }

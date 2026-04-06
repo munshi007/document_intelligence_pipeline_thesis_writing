@@ -4,46 +4,48 @@
 \section{Motivation}
 \label{sec:motivation}
 
-The industrial sector relies extensively on visually rich documents (VRDs), such as dense engineering datasheets and operating manuals, to communicate critical hardware specifications. These documents are characterized by formidable structural complexities, including embedded engineering graphs, multi-column tables, and hierarchical semantic dependencies. Historically, organizations have depended on manual data entry or simplistic Optical Character Recognition (OCR) to extract this information, leading to catastrophic context loss and a severe bottleneck for enterprise digitization.
+The industrial sector relies extensively on visually rich documents (VRDs), such as dense engineering datasheets and operating manuals, to communicate critical hardware specifications. These documents are characterized by formidable structural complexities, including embedded engineering graphs, multi-column tables, and hierarchical semantic dependencies. Historically, organizations have depended on manual data entry or simplistic Optical Character Recognition (OCR) to extract this information, leading to severe context loss and a bottleneck for enterprise digitization.
 
-The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit severe failure states. Traditional parsing destroys reading order, while VLMs frequently suffer from "structural hallucination"---a phenomenon where the model misinterprets the internal XYZ-axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints.
+The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit failure states. Traditional parsing destroys reading order, while VLMs frequently suffer from "structural hallucination"---a phenomenon where the model misinterprets the internal axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints.
 
-To enable true, automated intelligence, industrial PDFs must first be deterministically transformed into a hierarchical, mathematically rigid Markdown representation. This necessitates a highly resilient extraction pipeline capable of intelligently routing specific layout components to specialized mathematical and generative models.
+To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. This necessitates a resilient extraction pipeline capable of intelligently routing specific layout components to specialized mathematical and generative models.
 
 \section{Aim of this thesis}
 \label{sec:aim}
 
-This thesis addresses the catastrophic limitations mapping unstructured VRDs to structured data by proposing a novel, multi-modal ingestion framework. The primary objective is to engineer a deterministic pipeline that perfectly converts a complex industrial PDF into structural Markdown, comprehensively eliminating visual hallucination loops.
+This thesis addresses the limitations of mapping unstructured VRDs to structured data by proposing a novel, multi-modal ingestion framework. The primary objective is to engineer a deterministic pipeline that converts a complex industrial PDF into structural Markdown, eliminating visual hallucination loops.
 
 This objective is systematically achieved through the following technical contributions:
 
 \textbf{1. Ensemble Layout Detection and Verification:}
-This research evaluates the application of Real-Time Detection Transformers (RT-DETR) to isolate geometric document regions. Rather than relying on generative approximation, the pipeline employs deterministic Recursive XY-Cuts to verify reading order, providing error-free spatial sequencing for downstream extractors.
+This research evaluates the application of DocLayout-YOLO transformers to isolate geometric document regions. Rather than relying on generative approximation, the pipeline employs a combination of native PDF primitive extraction and VLM-based reading order verification, providing high-fidelity spatial sequencing. 
 
-\textbf{2. Algorithmic Routing and VLM Specialists:}
-To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or highly-prompted VLM Specialists. The research extensively details the XML-tagged prompt engineering employed to force strict column alignment and suppress coordinate hallucination from visual models.
+\textbf{2. Algorithmic Routing and Structured Extraction:}
+To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or specialist VLMs. The research details the transition from XML-tagging to structured JSON extraction utilizing Pydantic schemas for improved validation.
 
-\textbf{3. Semantic Pre-Masking for TSR:}
-To eliminate the severe failure state of the Table Transformer (TATR) hallucinating non-existent rows within embedded graphs, this research introduces a novel "Semantic Pre-Masking" architecture. By mathematically isolating and obscuring raster graphs from the image tensor prior to visual inference, the TSR engine accurately parses the true tabular geometry flawlessly.
+\textbf{3. Semantic Context and Knowledge Graphs:}
+This research introduces a Hierarchical Knowledge Graph (HKG) architecture to preserve the multi-modal "connective tissue" of industrial documents. By implementing a 3-pass construction algorithm with breadcrumb propagation, the pipeline ensures that every extracted text chunk carries its full semantic provenance, optimizing it for downstream RAG applications.
 
 \textbf{4. Parameter-Efficient Edge Deployment:}
-To ensure the multi-modal framework executes without relying on massive, latency-heavy proprietary APIs (e.g., GPT-4V), this thesis utilizes Knowledge Distillation. By utilizing Low-Rank Adaptation (LoRA) and optimized CUDA kernels (Unsloth), the visual reasoning capabilities required for structural mapping are efficiently distilled into an 11-Billion parameter framework capable of high-throughput execution on a single consumer GPU.
+To ensure the multi-modal framework executes without relying on latency-heavy proprietary APIs, this thesis utilizes Knowledge Distillation. By utilizing Low-Rank Adaptation (LoRA) and the Unsloth framework, the visual reasoning capabilities are distilled from a GPT-4o teacher into an 11-Billion parameter Llama-Vision student capable of high-throughput execution on a single consumer GPU.
 
 \section{Structure of this thesis}
 \label{sec:structure}
 
-This thesis is organized sequentially, following the precise flow of geometric data through the multi-modal extraction pipeline:
+This thesis is organized sequentially, following the flow of geometric data through the multi-modal extraction pipeline:
 
 \begin{itemize}
-    \item \textbf{Chapter 1: Introduction} outlines the industrial motivation, the phenomenon of structural hallucination in VRDs, and the primary objectives of the deterministic ingestion framework.
+    \item \textbf{Chapter 1: Background and Related Work} examines the evolution of Vision-Language Models, the geometric limitations of Table Structure Recognition (TSR), and the computational requirements of Parameter-Efficient Fine-Tuning (PEFT).
 
-    \item \textbf{Chapter 2: Background and Related Work} examines the evolution of Vision-Language Models, the geometric limitations of Table Structure Recognition (TSR), and the computational requirements necessitating Parameter-Efficient Fine-Tuning (PEFT).
+    \item \textbf{Chapter 2: Layout Intelligence and Reading Order} details the foundational architecture of the ingestion phase, formalizing the DocLayout-YOLO detection and the hybrid use of native PDF primitives and VLM verification.
 
-    \item \textbf{Chapter 3: Layout Intelligence and Reading Order} details the foundational architecture of the ingestion phase, formalizing the RT-DETR layout detection and the exact algorithmic math driving the XY-Cut sorting layer.
+    \item \textbf{Chapter 3: The Routing Engine and Structured Extraction} analyzes the table classification logic and documents the transition to Pydantic-validated JSON extraction for specialized industrial taxonomies.
 
-    \item \textbf{Chapter 4: The Routing Engine and VLM Specialists} heavily analyzes the table classification logic, derived from structural gap-scoring, and rigorously documents the XML-tagging strategies developed to eliminate hallucination in local generative models.
+    \item \textbf{Chapter 4: Semantic Context and Knowledge Graphs} describes the 3-pass HKG construction algorithm and the Semantic Pre-Masking technique used to resolve table hallucinations.
 
-    \item \textbf{Chapter 5: Advanced Table Structure Recognition} is solely dedicated to the mathematical derivation and application of the Semantic Graph Masking algorithm designed to sanitize image tensors prior to TATR inference.
+    \item \textbf{Chapter 5: Custom Model Distillation (PEFT)} documents the precise hyperparameters and empirical training metrics required to distill the Llama-Vision 11B student model.
 
-    \item \textbf{Chapter 6: Custom Model Distillation (PEFT)} documents the precise hyperparameters, Llama-Vision dataset formatting, and empirical W\&B training metrics required to distill the deployed VLM.
+    \item \textbf{Chapter 6: Experimental Evaluation} presents the performance metrics of the pipeline across industrial datasets, comparing accuracy, latency, and extraction fidelity against baseline systems.
+
+    \item \textbf{Chapter 7: Conclusions and Future Work} summarizes the research contributions and outlines future directions for scale-up and model specialization.
 \end{itemize}

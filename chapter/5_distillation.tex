@@ -1,40 +1,30 @@
-\chapter{Custom Model Distillation and PEFT Optimization}
-\label{ch:distillation}
-
-The multi-modal ingestion methodology detailed in preceding chapters fundamentally relies on localized Visual-Language Specialists for algorithmic routing verification and complex layout parsing. However, deploying state-of-the-art Generative Models (e.g., GPT-4V, Llama-Vision 70B) natively imposes extreme computational constraints that functionally prohibit edge-deployment across standard enterprise hardware.
-
-This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) algorithms to circumvent VRAM exhaustion. Specifically, this research details the Knowledge Distillation sequence utilizing Low-Rank Adaptation (LoRA) and heavily optimized CUDA kernels (Unsloth) to synthesize high-level spatial reasoning capabilities into an 11-Billion parameter framework compatible with a singular consumer Graphics Processing Unit (GPU).
+This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) algorithms to enable specialized visual reasoning on localized hardware. Specifically, this research details the Knowledge Distillation sequence utilizing Low-Rank Adaptation (LoRA) and optimized CUDA kernels (Unsloth) to transfer high-level spatial reasoning from a teacher model (GPT-4o) into an 11-Billion parameter student model (Llama-Vision 11B). This process results in a model capable of executing complex routing and layout verification tasks within the 24 GB VRAM envelope of a single consumer Graphics Processing Unit (GPU).
 
 \section{The Edge-Deployment VRAM Bottleneck}
 \label{sec:vram_limits}
 
-In deep learning, the Random Access Memory (RAM) required to train or execute a transformer scales quadratically with both context length and parameter count. The full-precision float32 tensor weights of a standard 70B parameter Vision-Language Model exceed 280 Gigabytes of VRAM merely to load the architectural backbone, mandating massive, multi-card data-center server racks (e.g., $8\times$ NVIDIA A100 instances).
+However, the localized deployment target for this thesis pipeline is an NVIDIA GeForce RTX 3090 possessing 24 GB of VRAM. This hardware restriction necessitates memory optimization strategies. The baseline inference utilizes 4-bit quantization (bitsandbytes), which compresses the model weights while preserving the majority of the original semantic precision.
 
-However, the localized deployment target for this thesis pipeline is constrained to a singular NVIDIA GeForce RTX 3090 possessing just 24 GB of VRAM. This aggressive hardware restriction mandates profound memory optimization strategies. The baseline inference necessitates mathematical quantization, converting float32 bit-depths into 4-bit (int4) precision matrices via techniques such as BitsAndBytes.
-
-While 4-bit quantization solves execution loads, \textit{training} a model dynamically requires generating heavy gradient checkpoint tensors. To effectively specialize an 11B parameter visual model (such as LLaMA-Vision) on custom technical layouts without triggering Out-Of-Memory (OOM) fatal errors, the standard backward propagation algorithm must be bypassed entirely.
+While 4-bit quantization enables execution, \textit{training} a model conventionally requires storing high-precision gradient and optimizer states. To specialize the Llama-Vision 11B student model on industrial technical layouts without exceeding memory limits, the pipeline employs a combination of LoRA and memory-mapped kernels.
 
 \section{Low-Rank Adaptation (LoRA)}
 \label{sec:lora_math}
 
 To train a robust visual referee exclusively on 24 GB of VRAM, this thesis implements Low-Rank Adaptation (LoRA). Rather than explicitly altering the $d \times d$ pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times d}$ during gradient descent, LoRA mathematically freezes $W_0$ entirely. 
 
-The algorithm then introduces two drastically compressed, trainable spatial decomposition matrices $A$ and $B$, possessing a constrained rank dimensionality $r$ where $r \ll d$. The forward continuous-time propagation alters the weight accumulation $h$:
+The algorithm then introduces two trainable decomposition matrices $A$ and $B$, possessing a constrained rank dimensionality $r$ where $r \ll d$. The forward pass incorporates the low-rank update $\Delta W$ alongside the frozen base weights:
 
 \begin{equation}
 h = W_0 x + \Delta W x = W_0 x + BA x
 \end{equation}
 
-where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$. By severely restricting the rank integer (e.g., $r = 16$ or $r = 32$), the volume of trainable parameters diminishes by nearly 98\%, completely eviscerating the gradient footprint required inside the VRAM while retaining immense inferential flexibility.
+where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$. By restricting the rank to $r = 16$, the number of trainable parameters is reduced by over 98\%, significantly lowering the VRAM required for gradient storage while maintaining the model's ability to learn domain-specific visual features.
 
-\section{Distillation and Cross-Model Dataset Generation}
-\label{sec:dataset_prep}
+To train the student model for structured extraction and layout verification, a high-quality spatial dataset was synthesized using a teacher-student paradigm. In this framework, the outputs of a more capable \textit{teacher} model (GPT-4o) serve as the ground truth for training the smaller student.
 
-To utilize the frozen visual backbone for structured XML grid extraction (as documented in Chapter 4), a high-quality spatial dataset must be formulated. In standard Knowledge Distillation, the superior outputs of an immensely massive Teacher model (e.g., GPT-4V) are systematically curated and fed sequentially to the smaller Student model (Llama-Vision 11B).
+A dataset of approximately 1,000 industrial engineering documents was processed through the DocLayout-YOLO detector. From each document, various regions (tables, figures, and technical paragraphs) were cropped and passed to the teacher model. The teacher was prompted to generate structured XML and JSON representations of the content, specifically focusing on complex multi-column parameters and schematic descriptions.
 
-A robust dataset of 1,000 industrial engineering datasheets consisting of diverse Table matrices, Schematic diagrams, and explicit 2-column key-values was generated. For each layout cropped via RT-DETR, the Teacher model processed the tensor and generated the desired deterministic XML `<ROW>` hierarchy.
-
-The corresponding input-output pairs were formatted explicitly reflecting standard Llama multimodal training structures:
+These input (image crop) and output (structured text) pairs were then formatted into the multimodal conversation structure required for fine-tuning.
 \begin{verbatim}
 [
   {
@@ -53,18 +43,13 @@ The corresponding input-output pairs were formatted explicitly reflecting standa
 ]
 \end{verbatim}
 
-\section{Fine-Tuning Execution (Unsloth Dynamics)}
+\section{Fine-Tuning Execution and Hyperparameters}
 \label{sec:unsloth_training}
 
-To push memory optimization to its absolute absolute boundaries, the training script was compiled utilizing the \texttt{Unsloth} python libraries. Unsloth bypasses standard PyTorch computational graphs, replacing them with custom-coded, memory-mapped Triton/CUDA kernels mathematically optimized to compute identical LoRA derivatives simultaneously conserving 60\% more VRAM.
+To maximize memory efficiency, the training pipeline was implemented using the \textit{Unsloth} framework, which provides optimized kernels for LoRA fine-tuning. The student model was loaded in 4-bit precision, and the LoRA adapters were applied to the $q, k, v, o$ and $gate, up, down$ projections within the transformer blocks.
 
-Figure \ref{fig:training_loss} plots the empirical trajectory logged sequentially by the Weights \& Biases (W\&B) tracking suite. The metric demonstrates pristine optimization. The student framework mathematically converged rapidly within the first 1,000 algorithmic steps without destructive over-fitting or catastrophic forgetting against the core LLaMA-Vision baseline.
+The training followed a precise hyperparameter schedule: a learning rate of $2 \times 10^{-4}$ with a cosine decay, a rank $r=16$, and an alpha $\alpha=32$. Training was executed for 1,000 steps with a global batch size of 8 (achieved through gradient accumulation), taking approximately 4 hours on the target RTX 3090 hardware.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/training_loss.png}
-    \caption{Weights \& Biases empirical logging curve displaying rapid Training Loss optimization during LoRA-based Knowledge Distillation on the RTX 3090.}
-    \label{fig:training_loss}
-\end{figure}
+Figure \ref{fig:training_loss} shows the training loss trajectory logged via Weights \& Biases. The loss curve demonstrates smooth convergence, indicating that the model successfully learned the structured extraction task without overfitting to the limited variety of the training set. 
 
-The resulting custom architectural checkpoints were subsequently fused into the primary router layer, culminating the fully realized, highly localized Document Intelligence framework devoid of any generative hallucination.
+Upon completion, the LoRA adapters were merged with the base model and pushed to a private repository (`RMunshi/vlm-student-thesis`) for integration into the production pipeline. The resulting specialist model provides the visual reasoning necessary for the routing and verification layers while maintaining the low latency required for industrial document processing.

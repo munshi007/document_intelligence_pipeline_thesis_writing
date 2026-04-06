@@ -1,0 +1,37 @@
+\chapter{Conclusions and Future Work}
+\label{ch:conclusion}
+
+This thesis has presented a robust, multi-modal ingestion pipeline specifically designed to resolve the structural complexities of industrial Visually Rich Documents (VRDs). By decoupling the document intelligence problem into specialized layout, routing, and extraction layers, the system achieves a degree of precision and context-preservation that baseline Vision-Language Models (VLMs) and legacy OCR engines cannot match.
+
+\section{Summary of Contributions}
+\label{sec:summary}
+
+The following key technical contributions were established:
+\begin{itemize}
+    \item \textbf{Ensemble Layout Detection:} The integration of DocLayout-YOLO as a vision-first detector provides the high-fidelity geometric localization required for multi-column industrial documents, significantly outperforming general-purpose detectors in spatial precision.
+    
+    \item \textbf{Algorithmic Routing and Structured Extraction:} The development of an intelligent scoring router, based on vector line density and gap ratios, allows the pipeline to dynamically dispatch tabular regions to specialized extractors. The transition to Pydantic-validated JSON extraction provides the deterministic schema adherence required for enterprise-grade automation.
+    
+    \item \textbf{Semantic Pre-Masking for TSR:} The introduction of a novel pre-masking algorithm resolves the chronic failure state of Table Structure Recognition (TSR) systems. By surgically obscuring embedded engineering schematics from the image tensor, the pipeline effectively eliminates structural hallucinations.
+    
+    \item \textbf{Hierarchical Knowledge Graphs (HKG):} The 3-pass HKG construction algorithm preserves the semantic and topological "connective tissue" of the document. The resulting representation, enriched with hierarchical breadcrumbs and spatial links, provides unambiguous semantic provenance for downstream Retrieval-Augmented Generation (RAG) applications.
+    
+    \item \textbf{Knowledge Distillation for Edge Deployment:} Through the application of LoRA and the Unsloth framework, the visual reasoning capabilities required for structural mapping were successfully distilled from a GPT-4o teacher into an 11-Billion parameter Llama-Vision student. This enables high-performance inference on consumer-grade hardware (RTX 3090), facilitating local deployment in secure enterprise environments.
+\end{itemize}
+
+\section{Future Research Pathways}
+\label{sec:future_work}
+
+While the current pipeline addresses the foundational challenges of industrial document intelligence, several future directions offer substantial potential for further improvement:
+
+\subsection{Distillation of Higher-Capacity Students}
+As newer model families like Qwen 2-VL and Llama 3.2 become available, the distillation framework can be extended to higher-capacity students (e.g., 7B or 14B models). Preliminary experiments suggest that the architectural improvements in these models, particularly regarding visual patch resolution, may further enhance extraction accuracy for extremely dense technical matrices.
+
+\subsection{Adaptive Resolution and 4K Vision Encoders}
+Industrial schematics often contain fine-grained textual annotations that are lost at the standard $1024 \times 1024$ input resolution. Future iterations of the pipeline could implement an "adaptive resolution" layer that detects high-density regions and re-processes them through secondary, higher-resolution visual encoders (e.g., InternVL-2.5) to capture molecular-level details in engineering drawings.
+
+\subsection{Automated Schema Synthesis and Self-Correction}
+Integrating an "Ontology Agent" that dynamically synthesizes Pydantic schemas based on the document's introductory sections could enable the system to adapt to entirely new document classes without manual intervention. Furthermore, a self-correction loop where the VLM referee provides natural language feedback to the extractor could further increase the "first-pass" extraction success rate.
+
+\section{Final Conclusion}
+The transformation of unstructured industrial knowledge into machine-readable intelligence is a critical prerequisite for the next generation of autonomous engineering workflows. This thesis provides a formal technical framework for achieving this transformation through specialized, graph-native document ingestion. By resolving the hallucination problem and preserving semantic context, the proposed architecture offers a scalable and robust pathway for enterprise-grade document intelligence.

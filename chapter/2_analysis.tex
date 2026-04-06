@@ -3,7 +3,7 @@
 
 The fundamental bottleneck in transforming industrial Visually Rich Documents (VRDs) into hierarchical Markdown is the catastrophic loss of spatial geometry during raw text extraction. Commercial OCR engines operate primarily via horizontal sweeping, inherently destroying the semantic flow of multi-column layouts, tables, and nested footnotes. 
 
-This chapter details the foundational architecture of the High-Fidelity Ingestion Pipeline developed within this research. The methodology is executed in two critical geometric phases: bounding box prediction via a Real-Time Detection Transformer (RT-DETR), and topological reading-order verification utilizing deterministic Recursive XY-Cut whitespace projections.
+This chapter details the foundational architecture of the High-Fidelity Ingestion Pipeline developed within this research. The methodology is executed in three critical geometric phases: bounding box prediction via DocLayout-YOLO (a real-time detection transformer derivative), native primitive extraction via direct PDF stream parsing, and topological reading-order verification utilizing deterministic Recursive XY-Cut whitespace projections and VLM-based continuity scoring.
 
 \section{System Architecture and Ensemble Flow}
 \label{sec:system_architecture}
@@ -16,19 +16,20 @@ Figure \ref{fig:architecture_flowchart} illustrates the massive, end-to-end data
 \centering
 \begin{tikzpicture}[
     node distance=1.5cm and 2cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1.0cm, rounded corners=0.1cm},
     arrow/.style={->, thick, >=stealth}
 ]
 
 % Nodes
 \node[box, fill=gray!10] (pdf) {Raw Industrial PDF};
-\node[box, below=1cm of pdf, fill=blue!10] (layout) {Layout Detection\\(RT-DETR)};
-\node[box, left=2cm of layout, fill=red!10] (images) {Raster Graph\\Primitives};
-\node[box, right=2cm of layout, fill=orange!10] (text) {Native Text\\Primitives};
+\node[box, below=1cm of pdf, fill=blue!10] (layout) {Layout Detection\\(DocLayout-YOLO)};
+\node[box, left=2cm of layout, fill=red!10] (images) {Raster Image\\Patches};
+\node[box, right=2cm of layout, fill=orange!10] (text) {Native Text\\Primitives (pdfplumber)};
 
 \node[box, below=1cm of layout, fill=purple!10] (xycut) {XY-Cut Reading\\Order Algorithm};
+\node[box, right=2cm of xycut, fill=yellow!10] (font) {FontAnalyzer \&\\Stylesheet};
 
-\node[box, below=1.5cm of xycut, fill=green!10] (router) {Hierarchical Routing\\(Chapter 4 \& 5)};
+\node[box, below=1.5cm of xycut, fill=green!10] (verification) {VLM Continuity\\Verification};
 
 % Connections
 \draw[arrow] (pdf) -- (layout);
@@ -36,46 +37,50 @@ Figure \ref{fig:architecture_flowchart} illustrates the massive, end-to-end data
 \draw[arrow] (pdf) -| (text);
 
 \draw[arrow] (layout) -- (xycut);
-\draw[arrow] (text) |- (xycut);
-
-\draw[arrow] (xycut) -- (router);
-\draw[arrow] (images) |- (router);
+\draw[arrow] (text) |- (font);
+\draw[arrow] (font) -- (xycut);
+\draw[arrow] (xycut) -- (verification);
+\draw[arrow] (images) |- (verification);
 
 \end{tikzpicture}
-\caption{The Ensemble Architecture of the Layout Detection Phase. The PDF natively parses raw geometries while RT-DETR predicts global bounding limits, consolidated via XY-Cuts.}
+\caption{The Ensemble Architecture of the Layout Detection Phase. The pipeline combines DocLayout-YOLO visual predictions with native font primitives to establish reading order, followed by VLM-based verification.}
 \label{fig:architecture_flowchart}
 \end{figure}
 
 The document is simultaneously parsed for precise mathematical primitives (via rendering libraries) and rasterized into a high-resolution $1024 \times 1024$ pixel tensor for semantic component classification.
 
-\section{Layout Detection via RT-DETR}
-\label{sec:rt_detr_logic}
+\section{Layout Detection via DocLayout-YOLO}
+\label{sec:doclayout_yolo_logic}
 
-Extracting raw text from a dual-column datasheet yields a chaotic, non-sequential string. To impose topological boundaries, the pipeline employs a Real-Time Detection Transformer (RT-DETR) engineered specifically for Document Layout Analysis (DLA).
+Extracting raw text from a dual-column industrial datasheet without spatial context results in a disordered jumble of parameters. To impose architectural boundaries, the pipeline utilizes \textit{DocLayout-YOLO} \cite{doclayout_yolo}, a vision-first transformer derivative specialized for document layout analysis.
 
-Unlike legacy region-proposal networks (e.g., Faster R-CNN) which suffer from high algorithmic complexity, the RT-DETR backbone processes visual embeddings via an attention encoder, directly predicting a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$. Each bounding box is mathematically parameterized as $b_i = (x_{min}, y_{min}, x_{max}, y_{max})$.
+As described in Chapter \ref{ch:background}, DocLayout-YOLO builds upon the Detection Transformer (DETR) paradigm but incorporates structural optimizations for high-resolution document processing. The model receives a $1024 \times 1024$ input tensor and directly predicts a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$ through its multi-scale feature encoder. Each proposal is parameterized as $(x_{min}, y_{min}, x_{max}, y_{max})$.
 
-Simultaneously, a Multi-Layer Perceptron (MLP) head predicts a designated class label $C_i \in \{ \text{Title, Text, Table, Figure} \}$ alongside a probabilistic confidence score $P(C_i | b_i)$.
-
-\subsection{Non-Maximum Suppression (NMS)}
-Due to the overlapping boundaries intrinsic to complex datasheets (e.g., a "Figure" bounding box partially encompassing a "Table" label), the pipeline calculates Intersection over Union (IoU). The mathematical exclusion threshold strictly removes overlapping proposals mapping to the identical class, returning a pristine list of localized architectural zones:
+An MLP classification head assigns a category label $C_i \in \{ \text{Title, Heading, Text, Table, Figure, Caption, Footer} \}$ to each region. To resolve overlapping predictions --- a common occurrence where a generic "Figure" box might duplicate a specific "Table" box --- the pipeline applies Non-Maximum Suppression (NMS) based on Intersection over Union (IoU) scores:
 \begin{equation}
 \text{IoU}(b_a, b_b) = \frac{\text{Area}(b_a \cap b_b)}{\text{Area}(b_a \cup b_b)}
 \end{equation}
 
+\section{Native Primitive Extraction and Font-Based Promotion}
+\label{sec:font_analyzer}
+
+While visual layout models are effective for geometric boundaries, they often struggle with fine-grained semantic distinctions, such as separating a bold paragraph from a section heading. The pipeline addresses this by parallelizing detection with native PDF primitive extraction using \textit{pdfplumber}.
+
+\subsection{FontAnalyzer and Stylesheet Hypotheses}
+For each detected text region, the \textit{FontAnalyzer} component extracts the dominant "font signature" --- comprising the font name, size, boldness, and color. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline constructs a \textit{DocumentStyleSheet}. 
+
+This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as "Text" by the visual model is promoted to "Heading" or "Title" if it possesses a font size exceeding 12pt and a bold weight flag, or if it consists entirely of uppercase characters within a specific length window. This hybrid approach leverages the geometric strengths of vision models while maintaining the semantic precision afforded by native document metadata.
+
+\section{VLM reading-order Verification}
+\label{sec:vlm_verification}
+
+Recursive XY-Cuts (detailed in Section \ref{sec:xy_cuts}) provide a robust first pass for reading order, but complex layouts with interleaved columns or floating sidebars can still lead to semantic breaks. To ensure the integrity of the downstream extraction, the pipeline incorporates a \textit{VLM Verification} layer.
+
+A specialist Vision-Language Model receives the page image and the proposed reading order manifest. It acts as a "referee," scoring the flow continuity on a scale of 1 to 10 based on semantic and visual coherence. If the score falls below a defined threshold (e.g., indicating interleaved columns that disrupt a sentence), the pipeline flags the page for adaptive re-sorting or triggers a "column-first" processing mode. 
+
 \section{Recursive XY-Cut Reading Order Algorithm}
 \label{sec:xy_cuts}
 
-Once exact semantic bounding boxes are isolated $(B)$, their sequential reading order remains undefined. While English reading flows strictly left-to-right and top-to-bottom, complex document layouts (such as localized side-bars adjacent to technical specification grids) invalidate universal geometrical sorting.
+Once semantic bounding boxes are isolated $(B)$ and semantic types are verified, their sequential reading order must be resolved. While western reading traditionally flows top-to-bottom, multi-column industrial layouts invalidate naive coordinate sorting.
 
-To absolutely safeguard the semantic progression necessary for downstream Language Models, the framework utilizes deterministic \textbf{Recursive XY-Cuts}. 
-
-The algorithm operates by mathematically projecting the cumulative bounding boxes onto the X and Y axes sequentially. It searches for continuous spatial "valleys" (regions of pure whitespace indicating column or paragraph separation) whose length exceeds a defined threshold $\tau$.
-
-Let $H_{X}(x)$ represent the cumulative height of all bounding boxes intersecting the vertical line at coordinate $x$. The algorithm detects a valid vertical cut if there exists a contiguous interval $[x_1, x_2]$ where $H_{X}(x) = 0$ and $(x_2 - x_1) > \tau_{width}$.
-
-\begin{equation}
-\min(x_{2}) \text{ s.t. } \forall x \in [x_1, x_2], \sum_{b \in B_{active}} \mathbb{I}(b_{xmin} \leq x \leq b_{xmax}) = 0 
-\end{equation}
-
-By recursively executing horizontal validation sweeps followed by vertical cuts, the document is hierarchically partitioned into an ordered tree structure. This geometric recursion guarantees that a technical operating manual with a left-edge schematic and a right-edge description cleanly resolves the description paragraphs sequentially, totally forbidding the destructive cross-column reading states associated with legacy commercial OCR.
+To provide a deterministic logical flow, the framework utilizes \textbf{Recursive XY-Cuts} \cite{xycut_ogorman}. The algorithm operates by projecting the bounding boxes onto the X and Y axes, searching for spatial "valleys" of whitespace that exceed a minimum gap threshold $\tau$. By recursively partitioning the page along these valleys, the document is decomposed into a hierarchical tree of regions that naturally preserves the intended human reading order. 

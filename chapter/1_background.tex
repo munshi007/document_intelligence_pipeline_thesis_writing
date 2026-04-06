@@ -1,22 +1,24 @@
 \chapter{Background and Literature Review}
 \label{ch:background}
 
-This chapter establishes the theoretical and evolutionary foundation for the methodologies engineered in this thesis. It dictates the trajectory of document intelligence, charting the transition from heuristic Optical Character Recognition (OCR) grids to modern, parameter-efficient Vision-Language Models (VLMs). Crucially, this chapter details the architectural mechanics of the predecessor technologies utilized within the pipeline (RT-DETR, TATR, and LoRA), explaining precisely how these specific algorithms evolved to supersede legacy deep learning paradigms.
+This chapter establishes the theoretical and technical foundation for the pipeline developed in this thesis. It traces the progression of document layout analysis from early heuristic methods to modern transformer-based detectors, reviews the table structure recognition architectures the pipeline builds upon, introduces the language and vision-language models involved in routing and distillation, and covers the parameter-efficient fine-tuning techniques that make local deployment feasible. Finally, it introduces the Retrieval-Augmented Generation paradigm that contextualizes the pipeline's downstream purpose.
 
 \section{The Evolution of Document Layout Analysis}
 \label{sec:layout_evolution}
 
-The foundational task of interpreting Visually Rich Documents (VRDs) is Document Layout Analysis (DLA)---the geometric isolation of semantic regions such as text paragraphs, titles, tables, and figures. 
+The foundational task in processing Visually Rich Documents (VRDs) is Document Layout Analysis (DLA) --- the geometric identification of semantically distinct regions such as titles, running text, tables, figures, and captions \cite{docai_survey}. Precise region isolation is a prerequisite for all downstream extraction steps; errors at this stage propagate through the entire pipeline without correction.
 
 \subsection{Heuristic and Convolutional Paradigms}
-Historically, DLA relied entirely on bottom-up heuristic algorithms, such as horizontal projection profiles and Connected Component Analysis (CCA). While computationally inexpensive, these pixel-sweeping methods exhibited catastrophic failure when applied to semi-structured industrial documents featuring multi-column layouts or intersecting graph borders. 
 
-The paradigm shifted significantly with the integration of Convolutional Neural Networks (CNNs). Architectures such as Faster R-CNN conceptualized DLA strictly as an object detection problem. Utilizing a Region Proposal Network (RPN), the model generated thousands of anchor boxes, which were subsequently refined via convolutional feature pooling. While robust, Faster R-CNN fundamentally suffered from a lack of global contextual awareness. Its localized convolutional kernels struggled to identify massive geometric relationships spanning the entire document page (e.g., properly bounding an engineering schematic that spans two columns).
+Early DLA relied on bottom-up heuristic procedures, such as horizontal projection profiles and Connected Component Analysis. While these approaches are computationally lightweight, they exhibit significant failure rates on semi-structured industrial documents that contain multi-column layouts, bordering lines shared between tables and adjacent text, or non-uniform page margins.
+
+The transition to Convolutional Neural Networks brought a substantial improvement. Architectures such as Faster R-CNN framed DLA as an object detection task, using a Region Proposal Network to generate candidate box hypotheses that are refined by convolutional feature pooling \cite{publaynet}. However, the locally receptive nature of convolutional kernels limits the model's ability to capture spatial relationships that extend across an entire page, such as correctly bounding a schematic that spans two columns.
 
 \subsection{Detection Transformers (DETR)}
-To resolve the contextual limitations of CNNs, the industry transitioned to the Detection Transformer (DETR) paradigm. DETR entirely abolished the necessity for hand-crafted anchor boxes and Non-Maximum Suppression (NMS) thresholds. 
 
-As depicted in Figure \ref{fig:detr_evolution}, DETR utilizes a backbone (typically ResNet) to extract a localized spatial feature map. However, instead of passing this map to an RPN, the flattened map is injected into a standard Transformer Encoder-Decoder architecture \cite{detr_carion}. The self-attention mechanism enables the model to reason globally across the entire bounding box distribution simultaneously. 
+The Detection Transformer (DETR) \cite{detr_carion} addressed the global-context limitation of CNNs by applying a standard encoder--decoder transformer directly to the flattened output of a convolutional backbone. The encoder's self-attention mechanism enables each position to attend to all other positions, allowing the model to reason about global spatial distributions. This is particularly valuable in document analysis, where the relationship between a table caption and its parent table may span a large vertical distance.
+
+As depicted in Figure~\ref{fig:detr_evolution}, DETR predicts a fixed set of bounding boxes and class labels in a single forward pass, dispensing with hand-engineered anchor boxes and Non-Maximum Suppression post-processing.
 
 \begin{figure}[htbp]
 \centering
@@ -38,38 +40,63 @@ As depicted in Figure \ref{fig:detr_evolution}, DETR utilizes a backbone (typica
 \draw[arrow] (decoder) -- (ffn);
 
 \end{tikzpicture}
-\caption{The classic Detection Transformer (DETR) architecture. By bypassing CNN anchor boxes, the globally attentive transformer accurately predicts coordinate geometry across highly complex page layouts.}
+\caption{The Detection Transformer (DETR) architecture \cite{detr_carion}. By replacing the Region Proposal Network with a globally attentive encoder--decoder, DETR predicts bounding boxes without hand-tuned anchors.}
 \label{fig:detr_evolution}
 \end{figure}
 
-The ingestion framework proposed in this thesis specifically utilizes RT-DETR (Real-Time DETR), an accelerated derivative that mitigates the quadratic computational complexity of the standard Transformer encoder. This grants the pipeline real-time Layout Understanding while preserving flawlessly comprehensive visual context.
+\subsection{DocLayout-YOLO: The Deployed Layout Model}
+\label{subsec:doclayout_yolo}
 
-\section{Table Structure Recognition (TSR) Architectures}
+The pipeline described in this thesis uses \textit{DocLayout-YOLO} \cite{doclayout_yolo} as its primary layout detection engine. DocLayout-YOLO is derived from the YOLOv10 family and has been adapted for document-specific detection tasks through two design choices. First, it is pre-trained on a combination of large-scale document layout datasets, including PubLayNet \cite{publaynet} and DocBank \cite{docbank}, giving the backbone prior knowledge of document-specific label categories (title, text, table, figure, caption). Second, it incorporates a global-to-local perception module that allows the model to balance broad page-level context with fine-grained region boundaries, addressing a common failure mode where overlapping regions or borderline labels are misclassified.
+
+Compared to RT-DETR \cite{rtdetr_lv} --- a real-time variant of DETR --- DocLayout-YOLO offers lower inference latency on a single consumer GPU while maintaining comparable mean average precision on the document detection benchmark. This makes it suitable for a pipeline expected to run on an NVIDIA GeForce RTX 3090 without batch-processing overhead.
+
+\subsection{LayoutLMv3 for Token Classification}
+\label{subsec:layoutlmv3}
+
+Beyond region-level detection, the pipeline employs \textit{LayoutLMv3} \cite{layoutlmv3} for token-level semantic classification. LayoutLMv3 extends the BERT-style pre-training paradigm to the multimodal document setting by jointly masking text tokens and image patches during pre-training. This unified masking objective produces representations that align visual features (e.g., font rendering, spatial position) with their corresponding text tokens.
+
+In practice, LayoutLMv3 receives a page image together with the token sequence and their bounding box coordinates, and predicts a semantic label for each text token. This token-level output complements the region-level predictions from DocLayout-YOLO, enabling finer-grained distinctions such as identifying running headers that visually resemble body text.
+
+\section{Native PDF Primitives and Text Extraction}
+\label{sec:pdfplumber}
+
+A defining characteristic of industrial datasheets is that they are typically generated programmatically from CAD or ERP systems, meaning the underlying PDF file contains a native, vector-level text stream directly embedded in the page description language. This is in contrast to scanned documents, which require rasterization and Optical Character Recognition.
+
+The pipeline exploits this property by using \textit{pdfplumber}, a Python library that parses the internal PDF content stream to retrieve precise character-level bounding boxes, font names, font sizes, bold and italic flags, and color values without any rasterization step \cite{docai_survey}. This native extraction has two practical advantages over OCR-based approaches: it is exact (no transcription errors for machine-generated text), and it provides font metadata that is unavailable from pixel-level inference.
+
+These font signatures are used downstream by a \textit{FontAnalyzer} component that infers the document's style hierarchy --- distinguishing body text from section headings and titles --- by computing frequency distributions of font size and weight across the first few pages. The resulting \textit{DocumentStyleSheet} serves as a deterministic fallback and as a grounding signal that can override potentially hallucinated VLM-hypothesized styles.
+
+\section{Table Structure Recognition}
 \label{sec:tsr_limits}
 
-Once the global layout bounding boxes are predicted, the isolated tabular grids must be reconstructed into machine-readable arrays. Table Structure Recognition (TSR) is notoriously complex due to the absence of explicit, continuous grid lines characterizing modern technical datasheets.
+Once layout detection has localized table regions, the internal row--column grid must be reconstructed into a machine-readable form. This task, known as Table Structure Recognition (TSR), is considerably more difficult than layout detection because many industrial tables lack explicit, continuous grid lines; alignment is instead implied by whitespace alone.
 
 \subsection{The Table Transformer (TATR)}
-Drawing profound inspiration from the global context abilities of DETR layout analysis, Smock et al. introduced the Table Transformer (TATR) \cite{tatr}. TATR treats internal tabular alignment identically to standard object detection. It predicts individual coordinate matrices for tabular rows, columns, and spanning cells directly from the isolated table crop tensor.
 
-While TATR demonstrates unprecedented precision regarding clean matrices, it possesses a highly-documented failure state addressed explicitly in Chapter 5. Because TATR relies exclusively on observing geometric alignment lines and whitespace, embedding an engineering schematic diagram (with dense internal axes) within a table causes the Transformer to hallucinate cross-sectional geometric structures, aggressively shattering its own topological coordinate generation. This failure completely mandates the engineering of deterministic Semantic Masking algorithms prior to execution.
+The Table Transformer (TATR) \cite{tatr}, introduced by Smock et al., applies the DETR detection paradigm to the internal structure of a table crop. It predicts coordinate matrices for rows, columns, and spanning cells directly from the isolated image region, achieving high accuracy on clean, well-separated grids.
 
-\section{Vision-Language Models (VLMs) and Generative Grids}
+However, TATR exhibits a specific failure mode that is particularly prevalent in industrial datasheets: when the table region contains an embedded engineering schematic --- a wiring diagram, a Cartesian timing plot, or a dimensional drawing --- the dense internal line structure of that graphic is interpreted by TATR as table grid lines, causing it to hallucinate rows and columns within the schematic. This phenomenon and the engineering solution developed to address it are described in detail in Chapter~\ref{ch:tsr_masking}.
+
+\section{Vision-Language Models}
 \label{sec:vlms}
 
-For implicit tabular structures devoid of mechanical grid boundaries (such as 2-column key-value alignments), visual object detection fails. The integration of continuous Vision-Language Models (VLMs) explicitly resolves this via zero-shot logical reasoning.
+For table regions where no physical grid lines exist and gap-ratio scoring cannot reliably confirm a key-value structure, the pipeline delegates extraction to a Vision-Language Model (VLM). Modern VLMs encode a page image through a vision encoder (typically a ViT-based architecture) and pass the resulting patch embeddings, together with a text prompt, to an autoregressive language decoder \cite{llm_extraction}. The decoder can then generate structured output such as tables or JSON by treating the extraction task as conditional text generation.
 
-Modern VLMs (e.g., LLaMA-Vision, Qwen-VL) construct continuous vector spaces bridging visual embeddings with massive auto-regressive language decoders \cite{llm_extraction}. Unlike deterministic coordinate predictors, VLMs can intelligently "read" parameters (e.g., "Max Output Voltage") and dynamically generate programmatic tabular arrays directly into string memory. 
+The primary risk of VLM-based extraction is \textit{structural hallucination}: the model generates output that is syntactically coherent but semantically inconsistent with the source document, often by misreading numeric labels inside an embedded graphic as table cell values. The routing and masking layers described in subsequent chapters are designed to confine VLM calls to cases where they are most reliable and to constrain their output format.
 
-However, generic VLMs are highly conversational. When tasked with strict deterministic schema generation, they frequently inject conversational filler (e.g., "Here is your data:"). Furthermore, much like TATR's geometrical interference, a VLM frequently succumbs to "semantic hallucination," reading numeric parameters located physically inside an embedded graphic and attempting to parse them as tabular grid conditions.
-
-\section{Parameter-Efficient Fine-Tuning (PEFT)}
+\section{Knowledge Distillation and Parameter-Efficient Fine-Tuning}
 \label{sec:peft}
 
-To forcefully counteract generative VLM hallucination, the models must be specialized via Knowledge Distillation. However, fully fine-tuning an enormous framework like LLaMA-3-11B demands impossible hardware thresholds.
+Deploying a capable VLM for layout verification and grid extraction on consumer hardware requires specializing a smaller model to execute the narrow set of tasks the pipeline requires, rather than relying on a large general-purpose API. Knowledge Distillation \cite{knowledge_distill} provides the formal framework for this: a larger, more capable \textit{teacher} model generates training examples (input--output pairs), which are used to train a smaller \textit{student} model to approximate the teacher's behavior on the target task.
 
-\subsection{The Mechanics of Low-Rank Adaptation (LoRA)}
-To circumvent Data Center GPU requirements, this thesis implements Low-Rank Adaptation (LoRA) \cite{lora}. Traditional fine-tuning modifies the dense pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times d}$. LoRA mathematically freezes $W_0$ entirely, injecting two drastic decomposition matrices, $A$ and $B$, possessing a constrained rank dimensionality $r$ (Figure \ref{fig:lora_architecture}).
+\subsection{Low-Rank Adaptation (LoRA)}
+
+Full fine-tuning of an 11-billion parameter model requires storing gradient tensors whose memory footprint is comparable to or larger than the model weights themselves, placing it far beyond the capacity of a single 24 GB GPU. Low-Rank Adaptation (LoRA) \cite{lora} resolves this by freezing the pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times d}$ entirely and injecting two low-rank factor matrices $A \in \mathbb{R}^{r \times d}$ and $B \in \mathbb{R}^{d \times r}$ alongside it, where $r \ll d$. The modified forward computation adds the low-rank update to the frozen weight output:
+
+\begin{equation}
+h = W_0 x + \Delta W x = W_0 x + B A x
+\end{equation}
 
 \begin{figure}[htbp]
 \centering
@@ -93,8 +120,16 @@ To circumvent Data Center GPU requirements, this thesis implements Low-Rank Adap
 \node[above left=0.6cm and -1.5cm of b] {$+ \Delta W x$};
 
 \end{tikzpicture}
-\caption{LoRA Architecture. By freezing $W_0$ and training heavily compressed rank-decomposition networks $A$ and $B$, the optimization drastically eviscerates VRAM derivative memory generation while preserving inferential logic.}
+\caption{LoRA architecture \cite{lora}. Freezing $W_0$ and training the low-rank factors $A$ and $B$ reduces trainable parameters by approximately 98\%, making 11B-parameter model fine-tuning feasible on a single 24 GB GPU.}
 \label{fig:lora_architecture}
 \end{figure}
 
-The rank constraint $r \ll d$ inherently guarantees that the trainable gradient parameters diminish by over 98\%. By coordinating LoRA through heavily optimized CUDA memory kernels (e.g., Unsloth), the visual reasoning capabilities required for structural mapping are surgically distilled into an architecture capable of running exclusively on a commercial 24GB VRAM target, successfully closing the deployment integration loop.
+By constraining the rank, for instance $r = 16$ as used in this work, the number of trainable parameters drops from $d^2$ to $2rd$, a reduction of roughly 98\% for typical transformer hidden dimensions. Training is further accelerated through the \texttt{Unsloth} library, which replaces PyTorch's standard computational graph with memory-mapped Triton/CUDA kernels optimized specifically for LoRA gradient computation, reducing peak VRAM usage by approximately 60\% compared to a standard PEFT implementation.
+
+\section{Retrieval-Augmented Generation}
+\label{sec:rag}
+
+The structured Markdown and graph output produced by this pipeline are intended for downstream consumption by a Retrieval-Augmented Generation (RAG) system \cite{rag_lewis}. In the RAG paradigm, a language model answers queries by first retrieving relevant passages from an indexed document corpus, then conditioning its generation on those passages. The quality of the retrieval step --- and therefore the quality of the generated answers --- depends critically on how accurately the document corpus has been chunked and indexed.
+
+A flat OCR transcript of an industrial datasheet, with destroyed reading order and collapsed tables, produces low-quality retrieval chunks that cause the downstream model to hallucinate specifications or misattribute parameters to the wrong product. By contrast, the Hierarchical Knowledge Graph (HKG) produced by this pipeline preserves section context, maintains table integrity, and resolves cross-references, yielding retrieval chunks that carry unambiguous semantic provenance. This is the principal motivation for the graph-native representation described in Chapter~\ref{ch:tsr_masking}.
+

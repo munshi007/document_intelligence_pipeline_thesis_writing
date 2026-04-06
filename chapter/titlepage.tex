@@ -54,15 +54,11 @@
 \setcounter{tocdepth}{2}
 \tableofcontents
 
-%\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
-%\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
 
-%\addcontentsline{toc}{chapter}{Tabellenverzeichnis}
-%\listoftables
-
-%\addcontentsline{toc}{chapter}{Algorithmenverzeichnis}
-%\listofalgorithms
-%\todo{Anleitung Algorithmen schreiben: \url{http://en.wikibooks.org/wiki/LaTeX/Algorithms}}
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
 
 \cleardoublepage
 % =============================================================================
@@ -70,7 +66,10 @@
 \phantomsection
 \section*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-englisch summary of this work
+
+Industrial technical documents --- product datasheets, operating manuals, and engineering specifications --- represent one of the most information-dense and structurally complex document classes encountered in enterprise environments. Existing extraction approaches, ranging from commercial OCR engines to general-purpose Vision-Language Models (VLMs), fail systematically on these materials. Layout-only parsers destroy multi-column reading order and misinterpret embedded schematics as tabular data; generative VLMs, when applied without structural constraints, produce confident but structurally invalid outputs by hallucinating table rows from graphical axes and schematic wiring diagrams.
+
+This thesis presents a multi-stage document intelligence pipeline specifically designed for industrial Visually Rich Documents (VRDs). The approach decouples the document understanding problem into four sequential layers. First, a DocLayout-YOLO detector isolates semantic regions, combined with deterministic column-aware reading-order sorting and a VLM-based referee for verification. Second, an algorithmic routing engine classifies each detected table region by computing vector line density and gap-ratio scores, dispatching grids to deterministic extractors or constrained generative specialists as appropriate. Third, a Semantic Pre-Masking algorithm surgically removes embedded engineering figures from the image tensor before Table Structure Recognition inference, resolving the hallucination problem at its geometric root. Finally, the pipeline assembles a Hierarchical Knowledge Graph (HKG) from the extracted regions, encoding section breadcrumbs, spatial caption links, and cross-document references for downstream use. To enable local, low-latency deployment, the visual reasoning capabilities required by the routing and verification layers are distilled into an 11-billion parameter student model (LLaMA-3.2-Vision) via Low-Rank Adaptation on a single consumer GPU, with training supervised by a GPT-4 teacher on a dataset of industrial table crops.
 
 
 \cleardoublepage

@@ -3,7 +3,7 @@
 
 Once a multi-page industrial document has been successfully processed through the Layout Detection phase, the resulting geometric bounding boxes must be interpreted. For generic text paragraphs, standard text primitives are structurally sufficient. However, tabular data within engineering datasheets exists across a vast spectrum of typological complexity. 
 
-This chapter details the architecture of the Algorithmic Routing Engine developed in this thesis. By computing vector line densities and geometrical word-gap ratios, the router dynamically classifies tabular instances and dispatches them to distinct inferential systems: generic 2-column key-value extractors, complex Table Structure Recognition (TSR) grids, or highly-prompted Generative Vision-Language Specialists. Furthermore, this section rigorously details the XML-tagging prompt engineering deployed to constrain Generative models.
+This chapter details the architecture of the Algorithmic Routing Engine developed in this thesis. By computing vector line densities and geometrical word-gap ratios, the router dynamically classifies tabular instances and dispatches them to distinct inferential systems: deterministic grid extractors, key-value specialists, or generative Vision-Language Models (VLMs). Furthermore, this section describes the multi-layered verification strategy consisting of constrained JSON generation and an automated Quality Assurance (QA) loop that triggers fallback extraction strategies upon failure.
 
 \section{The Algorithmic Router}
 \label{sec:router_logic}
@@ -16,38 +16,41 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \centering
 \begin{tikzpicture}[
     node distance=1cm and 1.5cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
-    decision/.style={diamond, draw, thick, align=center, aspect=2, minimum width=3cm},
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=0.8cm, rounded corners=0.1cm},
+    decision/.style={diamond, draw, thick, align=center, aspect=2, minimum width=2.8cm, inner sep=0pt},
     arrow/.style={->, thick, >=stealth}
 ]
 
-\node[box] (input) {Table Bounding Box $B_{table}$};
-\node[box, below=0.8cm of input] (primitives) {Extract Text \&\\Drawing Primitives};
-\node[box, below=0.8cm of primitives] (scores) {Compute $S_{ruled}$,\\$S_{kv}$, \& $Gaps$};
+% Nodes
+\node[box] (input) {Table Region $B_{table}$};
+\node[box, below=0.6cm of input] (scores) {Compute $S_{ruled}$, $S_{kv}$};
+\node[decision, below=0.8cm of scores] (is_ruled) {$S_{ruled} > 0.4$?};
+\node[decision, below=1.2cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
 
-\node[decision, below=1cm of scores] (is_tech) {Technical Anchors\\$\lor$ Multiple Gaps?};
-\node[decision, below=1.5cm of is_tech] (is_ruled) {$S_{ruled} > 0.4$?};
-\node[decision, below=1.5cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
+\node[box, right=1.5cm of is_ruled, fill=blue!10] (ruled) {Deterministic\\Grid Extractor};
+\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Specialist VLM\\(JSON Mode)};
 
-\node[box, right=2cm of is_tech, fill=red!10] (tsr) {\textbf{TSR / Masking}\\(TableType.COMPLEX)};
-\node[box, right=2cm of is_ruled, fill=blue!10] (ruled) {\textbf{Deterministic Grid}\\(TableType.RULED)};
-\node[box, right=2cm of is_kv, fill=green!10] (vlm) {\textbf{Specialist VLM}\\(TableType.VLM)};
+\node[box, below=1.2cm of is_kv, fill=red!10] (tsr) {Complex TSR\\\& Masking};
 
-\draw[arrow] (input) -- (primitives);
-\draw[arrow] (primitives) -- (scores);
-\draw[arrow] (scores) -- (is_tech);
+\node[box, below=1.0cm of vlm, fill=orange!10] (qa) {QA Layer\\(Coverage/Duplication)};
 
-\draw[arrow] (is_tech) -- node[above] {Yes} (tsr);
-\draw[arrow] (is_tech) -- node[left] {No} (is_ruled);
+% Connections
+\draw[arrow] (input) -- (scores);
+\draw[arrow] (scores) -- (is_ruled);
 
-\draw[arrow] (is_ruled) -- node[above] {Yes} (ruled);
-\draw[arrow] (is_ruled) -- node[left] {No} (is_kv);
+\draw[arrow] (is_ruled) -- node[above, font=\small] {Yes} (ruled);
+\draw[arrow] (is_ruled) -- node[left, font=\small] {No} (is_kv);
 
-\draw[arrow] (is_kv) -- node[above] {Yes} (vlm);
-\draw[arrow] (is_kv) -- node[left] {No} (tsr);
+\draw[arrow] (is_kv) -- node[above, font=\small] {Yes} (vlm);
+\draw[arrow] (is_kv) -- node[left, font=\small] {No} (tsr);
+
+\draw[arrow] (ruled) |- (qa);
+\draw[arrow] (vlm) -- (qa);
+
+\draw[arrow] (qa) -- node[right, font=\small] {Fail $\rightarrow$ Retry} +(2,0) |- (scores);
 
 \end{tikzpicture}
-\caption{The algorithmic decision tree for the Hierarchical Table Router. Instead of relying on monolithic LLMs for classification, this framework utilizes robust mathematical vector densities and whitespace gap intervals to perfectly route tables to specialized logic.}
+\caption{The hierarchical routing and verification loop. Tables are routed based on geometric scores; the extraction is subsequently validated by a QA layer that can trigger fallback attempts.}
 \label{fig:router_flow}
 \end{figure}
 
@@ -71,23 +74,28 @@ S_{\text{kv}} = 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \ri
 
 The balance factor, $B_{factor}$, calculates the symmetric distribution of text nodes residing left or right of $g_{max}$. If a table yields a highly imbalanced distribution or exhibits multiple significant gaps ($n \geq 2$), the router detects a complex multi-metric grid, bypassing the VLM and forcing the table to the Semantic Pre-Masking TSR framework detailed in Chapter 5.
 
-\section{Specialist VLM Extractor and XML Constraints}
+\section{Structured Extraction via JSON Schemas}
 \label{sec:vlm_specialist}
 
-When the router encounters a high-scoring 2-column structure ($S_{\text{kv}} > K_{threshold}$), the bounding box is physically rendered to an isolated RGB tensor and submitted to the isolated Vision-Language Extractor layer. Although modern Generative VLMs demonstrate high comprehension, they exhibit notorious volatility regarding structural formatting, frequently outputting conversational prose instead of machine-readable grid codes.
+When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor. Unlike general-purpose chat models, the extractor used in this pipeline is constrained to produce output that adheres monotonically to a predefined Pydantic schema.
 
-\subsection{XML-Tag Prompt Engineering}
-To mathematically force deterministic grid generation, this thesis implements a rigid XML-tagging hierarchy embedded within the model's system prompt. The model is forbidden from utilizing standard Markdown pipes ($|$), instead constrained to output sequential rows demarcated precisely by standard markup strings:
+\subsection{Constrained Generation and JSON Mode}
+To ensure the output is machine-readable and semantically valid, the pipeline utilizes "JSON Mode" combined with strict schema definitions \cite{json_mode}. The extractor receives a system prompt containing a technical taxonomy (e.g., the \textit{LibrarianUniversalHardware} schema) and is instructed to populate only the fields identified within the document.
 
-\begin{verbatim}
-<ROW>
-  <P>Parameter Node</P>
-  <C>Conditional Node</C>
-  <V>Value Node</V>
-</ROW>
-\end{verbatim}
+This approach offers two advantages over legacy XML-tagging. First, it enables complex nested structures, such as pin-to-signal assignments for industrial connectors, which are difficult to parse with regular expressions in XML formats. Second, it allows for type-level validation; the pipeline can verify that "Supply Voltage" is a numeric range rather than an arbitrary string at the point of inference.
 
-By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. Even if the generated syntax contains erroneous conversational prefixing ("Here is your data:"), the downstream pipeline precisely extracts the matched `<ROW>` groups, ensuring perfect programmatic mapping to the final structured response.
+\section{Extraction Quality Assurance and Adaptive Retry}
+\label{sec:qa_layer}
+
+A significant contribution of this architecture is the secondary verification layer that follows every extraction attempt. Rather than assuming the first extraction is correct, the \textit{QA Coordinator} evaluates two precision metrics: \textbf{Coverage} and \textbf{Duplication}.
+
+\subsection{Coverage and Duplication Metrics}
+The coverage metric measures the ratio of source text tokens successfully mapped into the resulting JSON structure. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure.
+
+Conversely, the duplication metric detects instances where the model "stutters" or recursively generates the same row multiple times --- a common failure mode in sequence-to-sequence document models. Let $E$ be the set of extracted records. The duplication score $S_{dup}$ is defined as the frequency of redundant entries normalized by the total count. If $S_{dup} > 0.05$ or Coverage $< 0.90$, the extraction is rejected.
+
+\subsection{Adaptive Fallback Logic}
+In the event of a QA failure, the pipeline does not stop. Instead, the coordinator triggers an \textit{Adaptive Fallback}. If a generative VLM attempt failed due to duplication error, the system may re-route the region to a deterministic grid parser or attempt the extraction again with a higher "temperature" or a modified prompt structure that emphasizes structural unique-constraints. This iterative retry loop substantially increases the extraction success rate on highly complex, semi-structured industrial materials.
 
 \subsection{Eradicating Generative Topological Hallucination}
 The most pernicious failure state in visual grid reconstruction occurs when a standard VLM processes a technical table encapsulating a visual diagram (e.g., an embedded sensor wiring schematic). Standard instruction-tuned models recursively attempt to OCR the diagram's internal axes or numeric labels, creating endlessly hallucinated, unsynchronized tabular rows. 

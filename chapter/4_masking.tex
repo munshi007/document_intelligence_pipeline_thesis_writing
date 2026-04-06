@@ -1,9 +1,9 @@
-\chapter{Advanced Table Structure Recognition}
-\label{ch:tsr_masking}
+\chapter{Semantic Context and Hierarchical Knowledge Graphs}
+\label{ch:graph_masking}
 
-Once the foundational Layout Detection phase geometrically localizes all tabular regions within the document, the extraction methodology must resolve the grid structures. For standard, fully-ruled tables, naive parsing algorithms suffice. However, multi-modal industrial datasheets routinely embed massive, highly detailed engineering schematics, wiring graphs, or Cartesian diagrams directly within tabular cells.
+Translating an industrial Visually Rich Document (VRD) into a flat text stream destroys the multi-modal relationships that define its meaning --- the link between a table and its caption, or a specification and its parent section header. To preserve this semantic integrity, the pipeline implements two advanced structural layers: a \textit{Semantic Pre-Masking} algorithm to resolve table hallucinations, and a \textit{Hierarchical Knowledge Graph} (HKG) that encodes the document's topological and semantic provenance.
 
-This chapter details the \textit{Semantic Graph Masking} architecture developed to completely solve the debilitating phenomenon of visual hallucination in Table Structure Recognition (TSR) systems. By applying deterministic mathematical pixel obscuration, this research demonstrates the flawless utilization of the Table Transformer (TATR) backbone upon highly problematic industrial diagrams.
+This chapter details these layers, describing how the pipeline moves beyond layout detection to construct a graph-native representation suitable for high-precision Retrieval-Augmented Generation (RAG).
 
 \section{The Core Visual Hallucination Paradigm}
 \label{sec:hallucination_paradigm}
@@ -21,11 +21,10 @@ To permanently circumvent generative visual hallucination, this thesis engineers
 
 Instead of relying on fragile Large Language Model (LLM) instruction tuning to "ignore the graph", the intervention is purely geometrical and localized directly on the raw image array.
 
-\subsection{Geometric Primitive Projection}
-The mechanism relies on the metadata synchronization established during the initial ingestion phase. Specifically, the framework utilizes the `ImagePrimitives` array derived identically traversing the native PDF structural tree.
+The mechanism relies on the metadata synchronization established during the initial ingestion phase. Specifically, the framework utilizes the `ImagePrimitives` array derived from the native PDF structural tree.
 
 Let $T_{crop}$ denote the high-resolution NumPy pixel tensor array representing the structural crop of the localized Table bounding box, bounded by $B_{table} = (X_{min}, Y_{min}, X_{max}, Y_{max})$.
-Let $F$ represent the set of all raster images and `Figure` bounding boxes independently identified via RT-DETR residing within the parent document.
+Let $F$ represent the set of all raster images and `Figure` bounding boxes independently identified via DocLayout-YOLO residing within the parent document.
 
 The algorithmic algorithm mathematically projects the spatial constraints of any external figures $f_i$ directly onto the Table's localized sub-tensor. If the absolute bounding coordinates of the figure $B_{figure}$ intersect the table crop $B_{table}$, its relative localized coordinates $(x'_{min}, y'_{min}, x'_{max}, y'_{max})$ are derived dynamically:
 
@@ -87,16 +86,63 @@ When the obscured tensor $T_{crop}'$ is evaluated dynamically by TATR, the model
 
 This highly localized engineering solution definitively eliminates topological table hallucination entirely independent of unreliable LLM prompting. Conclusively, it enables the integration of state-of-the-art TSR grid mapping for industrial documents, populating structurally verified topological trees directly into the unified Markdown abstraction.
 
-\section{Unified Markdown Assembly}
+\section{The Hierarchical Knowledge Graph (HKG) Construction}
+\label{sec:hkg_logic}
+
+Once layout regions have been isolated and their internal content extracted, the pipeline assembles them into a \textit{Hierarchical Knowledge Graph} (HKG). Unlike a flat Markdown file, the HKG preserves the multi-modal "connective tissue" of the document, ensuring that every extracted data point carries its full semantic context. The construction follows a three-pass algorithmic approach.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    node/.style={circle, draw, thick, align=center, minimum size=1.5cm, fill=white},
+    edge/.style={->, thick, >=stealth}
+]
+
+% Main Graph Structure
+\node[node, fill=gray!10] (doc) {Document\\Root};
+\node[node, below=of doc, fill=blue!10] (page) {Page\\Node};
+\node[node, below left=of page, fill=orange!10] (section) {Section\\Header};
+\node[node, below right=of page, fill=green!10] (table) {Table\\Region};
+\node[node, below=of section, fill=orange!5] (para) {Text\\Chunk};
+\node[node, below=of table, fill=green!5] (row) {Data\\Record};
+
+% Edges
+\draw[edge] (doc) -- (page);
+\draw[edge] (page) -- (section);
+\draw[edge] (page) -- (table);
+\draw[edge] (section) -- (para);
+\draw[edge] (table) -- (row);
+
+% Breadcrumb flows
+\draw[edge, dashed, red, bend right] (section.west) to node[midway, left] {Context Injection} (para.west);
+\draw[edge, dashed, red, bend left] (section) to node[midway, above] {Breadcrumb} (table);
+
+\end{tikzpicture}
+\caption{The schema of the Hierarchical Knowledge Graph (HKG). Dashed lines represent the "Breadcrumb" propagation logic where section context is injected into spatially or logically adjacent data chunks.}
+\label{fig:hkg_structure}
+\end{figure}
+
+\subsection{Pass 1: Atomic Region Chunking}
+The first pass maps the semantic bounding boxes derived from DocLayout-YOLO into atomic graph nodes. Each node stores the raw text, the region classification (e.g., \texttt{Table}, \texttt{Heading}), and its precise geometric provenance within the source PDF. This pass establishes the "spatial foundation" of the document.
+
+\subsection{Pass 2: Spatial Linking and Caption Association}
+In the second pass, the pipeline executes a distance-weighted linking algorithm to associate figures and tables with their respective captions. Industrial documents often place captions below tables or above figures; the graph builder computes the vertical distance between \texttt{Caption} nodes and their nearest \texttt{Table}/\texttt{Figure} neighbors. If the distance is within an adaptive threshold and no other semantic boundaries (like a section title) intervene, a \texttt{CAPTIONS\_FOR} edge is instantiated in the graph.
+
+\subsection{Pass 3: Cross-Reference Resolution and Breadcrumbs}
+The final pass implements the \textit{Breadcrumb System}. As the graph builder traverses the hierarchical tree, it identifies \texttt{Heading} and \texttt{Title} nodes. The text content of these headers is recursively propagated down to all "descendant" nodes (text paragraphs and tables) until the next header of equal or higher rank is encountered. 
+
+This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). 
+
+\section{Graph-Native Markdown Ingestion}
 \label{sec:markdown_assembly}
 
-The entire architecture discussed across the previous chapters fundamentally converges at the final Abstract Syntax Tree (AST) compilation phase. Once RT-DETR sequences the reading order, and the Routing engine perfectly extracts text primitives and tabular \texttt{TableCell} arrays (via TATR masking or VLM XML tags), the disconnected structures must be rendered into a unified string sequence.
+The convergence of the HKG and the extraction layers is finalized by the \textit{ConverterEngine}, which renders the graph into structured Markdown. Crucially, the engine does not just output text; it embeds hidden HTML provenance comments that map every Markdown block back to its unique Graph Node ID:
 
-The pipeline achieves this by traversing the sequential geometric indices established during the XY-Cut algorithm. 
-\begin{enumerate}
-    \item If the topological node is classified as \texttt{Title} or \texttt{Text}, the native optical primitives are concatenated with standard newline heuristics (e.g., \texttt{\# Header} or standard paragraph returns).
-    \item If the node is \texttt{Table}, the extracted \texttt{TableCell(row, col, value)} objects are algorithmically sorted and compiled into formalized Github-Flavored Markdown matrices utilizing standard vertical pipes (\texttt{|}).
-    \item If the node is \texttt{Figure}, the semantic caption overriding technique detailed in Chapter 4 inserts \texttt{[TECHNICAL\_GRAPH]} placeholders.
-\end{enumerate}
+\begin{verbatim}
+<!-- id=region_42 -->
+### Supply Voltage
+The module operates at 24V DC.
+\end{verbatim}
 
-By adhering strictly to mathematical coordinate sequencing, the final output generated is mathematically guaranteed to reflect the complete end-to-end multi-modal ingestion of the original physical document, enabling immediate deployment into semantic Retrieval-Augmented Generation (RAG) chunking indices.
+This mapping allows downstream RAG applications to perform a "Graph-to-Text" lookup. When an LLM retrieves a specific text chunk, the RAG system can query the Knowledge Graph for the chunk's parent breadcrumbs, associated image captions, or neighboring tables, drastically reducing hallucination by providing the model with a complete semantic neighborhood rather than an isolated fragment of text.
