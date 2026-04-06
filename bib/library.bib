@@ -1,3 +1,36 @@
+% ── Foundational AI and Attention Mechanisms ─────────────────────────────────
+
+@article{attention,
+  title={Attention Is All You Need},
+  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},
+  journal={Advances in neural information processing systems},
+  volume={30},
+  year={2017}
+}
+
+@article{bert,
+  title={{BERT}: Pre-training of Deep Bidirectional Transformers for Language Understanding},
+  author={Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina},
+  journal={arXiv preprint arXiv:1810.04805},
+  year={2018}
+}
+
+@article{vit,
+  title={An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
+  author={Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and others},
+  journal={arXiv preprint arXiv:2010.11929},
+  year={2020}
+}
+
+@inproceedings{instruct_tune,
+  title={Training language models to follow instructions with human feedback},
+  author={Ouyang, Long and Wu, Jeffrey and Jiang, Xu and Almeida, Diogo and Wainwright, Carroll and Mishkin, Pamela and Zhang, Chong and Agarwal, Sandhini and Slama, Katarina and Ray, Alex and others},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={35},
+  pages={27730--27744},
+  year={2022}
+}
+
 % ── Layout Analysis & Detection ──────────────────────────────────────────────
 
 @inproceedings{detr_carion,
@@ -15,6 +48,14 @@
   booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
   pages={16965--16974},
   year={2024}
+}
+
+@inproceedings{yolo,
+  title={You only look once: Unified, real-time object detection},
+  author={Redmon, Joseph and Divvala, Santosh and Girshick, Ross and Farhadi, Ali},
+  booktitle={Proceedings of the IEEE conference on computer vision and pattern recognition},
+  pages={779--788},
+  year={2016}
 }
 
 @article{doclayout_yolo,
@@ -52,7 +93,53 @@
   organization={IEEE}
 }
 
-% ── OCR and Text Extraction ───────────────────────────────────────────────────
+% ── OCR, Visual Extraction, and Page Parsing ─────────────────────────────────
+
+@article{tesseract,
+  title={An Overview of the Tesseract {OCR} Engine},
+  author={Smith, Ray},
+  journal={Ninth International Conference on Document Analysis and Recognition (ICDAR 2007)},
+  pages={629--633},
+  year={2007}
+}
+
+@inproceedings{doctr,
+  title={{docTR}: Document Text Recognition},
+  author={{Mindee}},
+  booktitle={GitHub Repository},
+  year={2021},
+  note={\url{https://github.com/mindee/doctr}}
+}
+
+@misc{pdfplumber,
+  title={pdfplumber: Plumb a {PDF} for detailed information about each text character, rectangle, and line},
+  author={Singer-Vine, Jeremy},
+  year={2020},
+  publisher={GitHub},
+  howpublished={\url{https://github.com/jsvine/pdfplumber}}
+}
+
+@inproceedings{docvqa,
+  title={DocVQA: A Dataset for VQA on Document Images},
+  author={Mathew, Minesh and Karatzas, Dimosthenis and Jawahar, C. V.},
+  booktitle={Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)},
+  pages={2200--2209},
+  year={2021}
+}
+
+@article{donut,
+  title={OCR-free Document Understanding Transformer},
+  author={Kim, Geewook and Hong, Teakgyu and Yim, Moonbin and Nam, JeongYeon and Park, Jinyoung and Yim, Jinyeong and Hwang, Wonseok and Yun, Sangdoo and Han, Dongyoon and Park, Seunghyun},
+  journal={European Conference on Computer Vision},
+  year={2022}
+}
+
+@article{nougat,
+  title={Nougat: Neural Optical Understanding for Academic Documents},
+  author={Blecher, Lukas and Cucurull, Guillem and Scialom, Thomas and Stojnic, Robert},
+  journal={arXiv preprint arXiv:2308.13418},
+  year={2023}
+}
 
 @inproceedings{docbank,
   title={{DocBank}: A Benchmark Dataset for Document Layout Analysis},
@@ -62,8 +149,6 @@
   year={2020}
 }
 
-% ── Language and Vision-Language Models ──────────────────────────────────────
-
 @inproceedings{layoutlm,
   title={LayoutLM: Pre-training of Text and Layout for Document Image Understanding},
   author={Xu, Yiheng and Li, Minghao and Cui, Lei and Huang, Shaohan and Wei, Furu and Zhou, Ming},
@@ -72,7 +157,9 @@
   year={2020}
 }
 
-@article{llm_extraction,
+% ── Vision-Language Models (VLMs) ────────────────────────────────────────────
+
+@article{qwen_vl,
   title={{Qwen-VL}: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond},
   author={Bai, Jinze and Bai, Shuai and Yang, Shusheng and Wang, Shijie and Tan, Sinan and Wang, Peng and Lin, Junyang and Zhou, Chang and Zhou, Jingren},
   journal={arXiv preprint arXiv:2308.12966},
@@ -81,9 +168,23 @@
 
 @article{qwen25,
   title={{Qwen2.5} Technical Report},
-  author={Qwen Team},
+  author={{Qwen Team}},
   journal={arXiv preprint arXiv:2412.15115},
   year={2024}
+}
+
+@misc{llama3_vision,
+  title={Llama 3 Vision Models: Open-weights visual reasoning},
+  author={{Meta AI}},
+  year={2024},
+  howpublished={\url{https://ai.meta.com/blog/llama-3-2-vision-open-weights/}}
+}
+
+@article{florence2,
+  title={Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks},
+  author={Xiao, Bin and Wu, Haiping and Xu, Weijian and Dai, Xiyang and Hu, Haojian and Lu, Yumeng and Zeng, Michael and Liu, Ce and Yuan, Lu},
+  journal={arXiv preprint arXiv:2311.06242},
+  year={2023}
 }
 
 @techreport{gpt4v,
@@ -92,6 +193,13 @@
   institution={OpenAI},
   year={2023},
   note={arXiv preprint arXiv:2303.08774}
+}
+
+@techreport{claude3,
+  title={The Claude 3 Model Family: Opus, Sonnet, Haiku},
+  author={{Anthropic}},
+  institution={Anthropic},
+  year={2024}
 }
 
 % ── Table Structure Recognition ───────────────────────────────────────────────
@@ -113,6 +221,13 @@
 
 % ── Knowledge Distillation and PEFT ──────────────────────────────────────────
 
+@inproceedings{knowledge_distill,
+  title={Distilling the Knowledge in a Neural Network},
+  author={Hinton, Geoffrey and Vinyals, Oriol and Dean, Jeff},
+  booktitle={NIPS Deep Learning and Representation Learning Workshop},
+  year={2015}
+}
+
 @article{lora,
   title={{LoRA}: Low-Rank Adaptation of Large Language Models},
   author={Hu, Edward J and Shen, Yelong and Wallis, Phil and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
@@ -120,11 +235,12 @@
   year={2021}
 }
 
-@inproceedings{knowledge_distill,
-  title={Distilling the Knowledge in a Neural Network},
-  author={Hinton, Geoffrey and Vinyals, Oriol and Dean, Jeff},
-  booktitle={NIPS Deep Learning and Representation Learning Workshop},
-  year={2015}
+@article{qlora,
+  title={{QLoRA}: Efficient Finetuning of Quantized LLMs},
+  author={Dettmers, Tim and Pagnoni, Artidoro and Holtzman, Ari and Zettlemoyer, Luke},
+  journal={Advances in Neural Information Processing Systems},
+  volume={36},
+  year={2023}
 }
 
 @inproceedings{peft_houlsby,
@@ -135,7 +251,47 @@
   year={2019}
 }
 
-% ── Reasoning and Prompting ───────────────────────────────────────────────────
+@misc{unsloth,
+  title={Unsloth: Fast LLM base training and finetuning},
+  author={{Unsloth AI}},
+  year={2023},
+  howpublished={\url{https://github.com/unslothai/unsloth}}
+}
+
+% ── Implementation Frameworks and Tooling ────────────────────────────────────
+
+@incollection{pytorch,
+  title = {PyTorch: An Imperative Style, High-Performance Deep Learning Library},
+  author = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  booktitle = {Advances in Neural Information Processing Systems 32},
+  pages = {8024--8035},
+  year = {2019},
+  publisher = {Curran Associates, Inc.}
+}
+
+@article{huggingface,
+  title={Transformers: State-of-the-Art Natural Language Processing},
+  author={Wolf, Thomas and Debut, Lysandre and Sanh, Victor and Chaumond, Julien and Delangue, Clement and Moi, Anthony and Cistac, Pierric and Rault, Tim and Louf, Remi and Funtowicz, Morgan and Davison, Joe and Shleifer, Sam and von Platen, Patrick and Ma, Clara and Jernite, Yacine and Plu, Julien and Xu, Canwen and Le Scao, Teven and Gugger, Sylvain and Drame, Mariama and Lhoest, Quentin and Rush, Alexander},
+  journal={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations},
+  pages={38--45},
+  year={2020}
+}
+
+@article{opencv,
+  title={The OpenCV Library},
+  author={Bradski, Gary},
+  journal={Dr. Dobb's Journal of Software Tools},
+  year={2000}
+}
+
+@misc{pydantic,
+  title={Pydantic: Data validation using Python type hints},
+  author={Colvin, Samuel},
+  year={2019},
+  howpublished={\url{https://github.com/pydantic/pydantic}}
+}
+
+% ── Reasoning, Prompting, and RAG ────────────────────────────────────────────
 
 @inproceedings{chain_of_thought,
   title={Chain-of-Thought Prompting Elicits Reasoning in Large Language Models},
@@ -153,8 +309,6 @@
   year={2023}
 }
 
-% ── Retrieval-Augmented Generation ───────────────────────────────────────────
-
 @inproceedings{rag_lewis,
   title={Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
   author={Lewis, Patrick and Perez, Ethan and Piktus, Aleksandra and Petroni, Fabio and Karpukhin, Vladimir and Goyal, Naman and K\"{u}ttler, Heinrich and Lewis, Mike and Yih, Wen-tau and Rockt\"{a}schel, Tim and others},
@@ -164,19 +318,9 @@
   year={2020}
 }
 
-% ── Document Intelligence Surveys ────────────────────────────────────────────
-
 @article{docai_survey,
   title={A Survey on Document Image Understanding: Reading Order, Information Extraction and Beyond},
   author={Ma, Chuwei and Zhong, Zining and Zhang, Zi and others},
   journal={arXiv preprint arXiv:2207.14350},
   year={2022}
-}
-
-@inproceedings{doctr,
-  title={{docTR}: Document Text Recognition},
-  author={{Mindee}},
-  booktitle={GitHub Repository},
-  year={2021},
-  note={\url{https://github.com/mindee/doctr}}
 }

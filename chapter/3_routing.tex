@@ -77,7 +77,7 @@ The balance factor, $B_{factor}$, calculates the symmetric distribution of text 
 \section{Specialist VLM Extractor and Hybrid XML-JSON Formatting}
 \label{sec:vlm_specialist}
 
-When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor. Unlike general-purpose chat models, the extractor used in this pipeline combines strict XML-tagging for structural grid alignment with Pydantic JSON schemas for final data validation.
+When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor \cite{gpt4v, qwen_vl}. Unlike general-purpose chat models, the extractor used in this pipeline combines strict XML-tagging for structural grid alignment with Pydantic JSON schemas \cite{pydantic} for final data validation.
 
 \subsection{XML-Tag Prompt Engineering for Grid Alignment}
 To mathematically force deterministic grid generation without JSON hallucination loops, the Local VLM Specialist uses a rigid XML-tagging hierarchy embedded within its system prompt. The model is forbidden from utilizing standard Markdown pipes ($|$), instead constrained to output sequential rows demarcated precisely by standard markup strings:
@@ -90,7 +90,7 @@ To mathematically force deterministic grid generation without JSON hallucination
 </ROW>
 \end{verbatim}
 
-By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. This ensures perfect programmatic mapping to the final structured Pydantic response, preventing the deep nesting crashes common with raw JSON generation in smaller models.
+By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. This ensures perfect programmatic mapping to the final structured Pydantic response \cite{pydantic}, preventing the deep nesting crashes common with raw JSON generation \cite{json_mode} in smaller models.
 
 \section{Extraction Quality Assurance and Adaptive Retry}
 \label{sec:qa_layer}

@@ -67,7 +67,7 @@ y'_{min} = \max(0, B_{figure}.y_{min} - B_{table}.y_{min})
 \end{figure}
 
 \subsection{Maximum-Intensity Tensor Obscuration}
-Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Utilizing optimized OpenCV geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$. 
+Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Utilizing optimized OpenCV \cite{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$. 
 
 For every sub-pixel coordinate $(x, y)$ residing within the calculated boundaries of the diagram, the original tensor intensity $T[x,y]$ is mathematically altered to true-white:
 

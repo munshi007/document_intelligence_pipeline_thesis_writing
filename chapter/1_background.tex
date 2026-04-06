@@ -10,9 +10,9 @@ The foundational task in processing Visually Rich Documents (VRDs) is Document L
 
 \subsection{Heuristic and Convolutional Paradigms}
 
-Early DLA relied on bottom-up heuristic procedures, such as horizontal projection profiles and Connected Component Analysis. While these approaches are computationally lightweight, they exhibit significant failure rates on semi-structured industrial documents that contain multi-column layouts, bordering lines shared between tables and adjacent text, or non-uniform page margins.
+Early DLA relied on bottom-up heuristic procedures, such as horizontal projection profiles and Connected Component Analysis \cite{xycut_ogorman}. While these approaches are computationally lightweight, they exhibit significant failure rates on semi-structured industrial documents that contain multi-column layouts, bordering lines shared between tables and adjacent text, or non-uniform page margins.
 
-The transition to Convolutional Neural Networks brought a substantial improvement. Architectures such as Faster R-CNN framed DLA as an object detection task, using a Region Proposal Network to generate candidate box hypotheses that are refined by convolutional feature pooling \cite{publaynet}. However, the locally receptive nature of convolutional kernels limits the model's ability to capture spatial relationships that extend across an entire page, such as correctly bounding a schematic that spans two columns.
+The transition to Convolutional Neural Networks brought a substantial improvement. Architectures such as Faster R-CNN framed DLA as an object detection task, using a Region Proposal Network to generate candidate box hypotheses that are refined by convolutional feature pooling \cite{publaynet, yolo}. However, the locally receptive nature of convolutional kernels limits the model's ability to capture spatial relationships that extend across an entire page, such as correctly bounding a schematic that spans two columns.
 
 \subsection{Detection Transformers (DETR)}
 
@@ -61,9 +61,9 @@ In practice, LayoutLMv3 receives a page image together with the token sequence a
 \section{Native PDF Primitives and Text Extraction}
 \label{sec:pdfplumber}
 
-A defining characteristic of industrial datasheets is that they are typically generated programmatically from CAD or ERP systems, meaning the underlying PDF file contains a native, vector-level text stream directly embedded in the page description language. This is in contrast to scanned documents, which require rasterization and Optical Character Recognition.
+A defining characteristic of industrial datasheets is that they are typically generated programmatically from CAD or ERP systems, meaning the underlying PDF file contains a native, vector-level text stream directly embedded in the page description language (\textit{e.g.}, via tools like \texttt{pdfplumber} \cite{pdfplumber}). This is in contrast to scanned documents, which require rasterization and Optical Character Recognition \cite{donut, nougat}.
 
-The pipeline exploits this property by using \textit{pdfplumber}, a Python library that parses the internal PDF content stream to retrieve precise character-level bounding boxes, font names, font sizes, bold and italic flags, and color values without any rasterization step \cite{docai_survey}. This native extraction has two practical advantages over OCR-based approaches: it is exact (no transcription errors for machine-generated text), and it provides font metadata that is unavailable from pixel-level inference.
+The pipeline exploits this property by securely parsing the internal PDF content stream to retrieve precise character-level bounding boxes, font names, font sizes, bold and italic flags, and color values without any rasterization step. This native extraction has two practical advantages over advanced OCR approaches (like Tesseract \cite{tesseract} or docTR \cite{doctr}): it is mathematically exact (no transcription errors for machine-generated text), and it provides structural font metadata that is entirely unrecoverable from pixel-level inference.
 
 These font signatures are used downstream by a \textit{FontAnalyzer} component that infers the document's style hierarchy --- distinguishing body text from section headings and titles --- by computing frequency distributions of font size and weight across the first few pages. The resulting \textit{DocumentStyleSheet} serves as a deterministic fallback and as a grounding signal that can override potentially hallucinated VLM-hypothesized styles.
 
@@ -81,9 +81,9 @@ However, TATR exhibits a specific failure mode that is particularly prevalent in
 \section{Vision-Language Models}
 \label{sec:vlms}
 
-For table regions where no physical grid lines exist and gap-ratio scoring cannot reliably confirm a key-value structure, the pipeline delegates extraction to a Vision-Language Model (VLM). Modern VLMs encode a page image through a vision encoder (typically a ViT-based architecture) and pass the resulting patch embeddings, together with a text prompt, to an autoregressive language decoder \cite{llm_extraction}. The decoder can then generate structured output such as tables or JSON by treating the extraction task as conditional text generation.
+For table regions where no physical grid lines exist and gap-ratio scoring cannot reliably confirm a key-value structure, the pipeline delegates extraction to a Vision-Language Model (VLM). Modern VLMs encode a page image through a vision encoder and pass the resulting patch embeddings, together with a text prompt, to an autoregressive language decoder \cite{qwen_vl, gpt4v}. The decoder can then generate structured output such as tables or JSON by treating the extraction task as conditional text generation \cite{json_mode}.
 
-The primary risk of VLM-based extraction is \textit{structural hallucination}: the model generates output that is syntactically coherent but semantically inconsistent with the source document, often by misreading numeric labels inside an embedded graphic as table cell values. The routing and masking layers described in subsequent chapters are designed to confine VLM calls to cases where they are most reliable and to constrain their output format.
+The primary risk of VLM-based extraction is \textit{structural hallucination}: the model generates output that is syntactically coherent but semantically inconsistent with the source document \cite{docvqa}, often by misreading numeric labels inside an embedded graphic as table cell values. The routing and masking layers described in subsequent chapters are designed to confine VLM calls to cases where they are most reliable and to constrain their output format.
 
 \section{Knowledge Distillation and Parameter-Efficient Fine-Tuning}
 \label{sec:peft}
@@ -124,7 +124,7 @@ h = W_0 x + \Delta W x = W_0 x + B A x
 \label{fig:lora_architecture}
 \end{figure}
 
-By constraining the rank, for instance $r = 16$ as used in this work, the number of trainable parameters drops from $d^2$ to $2rd$, a reduction of roughly 98\% for typical transformer hidden dimensions. Training is further accelerated through the \texttt{Unsloth} library, which replaces PyTorch's standard computational graph with memory-mapped Triton/CUDA kernels optimized specifically for LoRA gradient computation, reducing peak VRAM usage by approximately 60\% compared to a standard PEFT implementation.
+By constraining the rank, for instance $r = 16$ as used in this work, the number of trainable parameters drops from $d^2$ to $2rd$, a reduction of roughly 98\% for typical transformer hidden dimensions \cite{qlora}. Training is further accelerated through the \texttt{Unsloth} framework \cite{unsloth}, which replaces PyTorch's standard computational graph with memory-mapped Triton/CUDA kernels optimized specifically for LoRA gradient computation, reducing peak VRAM usage by approximately 60\% compared to a standard PEFT \cite{peft_houlsby} implementation.
 
 \section{Retrieval-Augmented Generation}
 \label{sec:rag}

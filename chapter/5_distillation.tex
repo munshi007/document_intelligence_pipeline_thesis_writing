@@ -1,4 +1,6 @@
-This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) algorithms to enable specialized visual reasoning on localized hardware. Specifically, this research details the Knowledge Distillation sequence utilizing Low-Rank Adaptation (LoRA) and optimized CUDA kernels (Unsloth) to transfer high-level spatial reasoning from a teacher model (GPT-4o) into an 11-Billion parameter student model (Llama-Vision 11B). This process results in a model capable of executing complex routing and layout verification tasks within the 24 GB VRAM envelope of a single consumer Graphics Processing Unit (GPU).
+This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) \cite{peft_houlsby} algorithms to enable specialized visual reasoning on localized hardware. Specifically, this research details the Knowledge Distillation \cite{knowledge_distill} sequence utilizing Low-Rank Adaptation (LoRA) \cite{lora} and optimized CUDA kernels (Unsloth \cite{unsloth}) to transfer high-level spatial reasoning from a teacher model (GPT-4o \cite{gpt4v}) into the localized pipeline. 
+
+Crucially, the production pipeline operates on a \textbf{Dual-Student Paradigm}. While Qwen 2.5-VL (7B) \cite{qwen25} acts as the robust foundational local client for layout analysis and generalized verification, an 11-Billion parameter student model (Llama-Vision 11B \cite{llama3_vision}) was explicitly distilled to execute the highly specialized `XML-Constraint` routing tasks. This chapter focuses on the distillation of this specialist, resulting in a model capable of executing complex routing within the 24 GB VRAM envelope of a single consumer Graphics Processing Unit (GPU).
 
 \section{The Edge-Deployment VRAM Bottleneck}
 \label{sec:vram_limits}
@@ -20,7 +22,7 @@ h = W_0 x + \Delta W x = W_0 x + BA x
 
 where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$. By restricting the rank to $r = 16$, the number of trainable parameters is reduced by over 98\%, significantly lowering the VRAM required for gradient storage while maintaining the model's ability to learn domain-specific visual features.
 
-To train the student model for structured extraction and layout verification, a high-quality spatial dataset was synthesized using a teacher-student paradigm. In this framework, the outputs of a more capable \textit{teacher} model (GPT-4o) serve as the ground truth for training the smaller student.
+To train the student model for structured extraction and layout verification, a high-quality spatial dataset was synthesized using a teacher-student paradigm \cite{instruct_tune}. In this framework, the outputs of a more capable \textit{teacher} model (GPT-4o) serve as the ground truth for training the smaller student.
 
 A dataset of approximately 1,000 industrial engineering documents was processed through the DocLayout-YOLO detector. From each document, various regions (tables, figures, and technical paragraphs) were cropped and passed to the teacher model. The teacher was prompted to generate structured XML and JSON representations of the content, specifically focusing on complex multi-column parameters and schematic descriptions.
 

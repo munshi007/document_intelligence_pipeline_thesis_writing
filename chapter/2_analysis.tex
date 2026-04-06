@@ -3,7 +3,7 @@
 
 The fundamental bottleneck in transforming industrial Visually Rich Documents (VRDs) into hierarchical Markdown is the catastrophic loss of spatial geometry during raw text extraction. Commercial OCR engines operate primarily via horizontal sweeping, inherently destroying the semantic flow of multi-column layouts, tables, and nested footnotes. 
 
-This chapter details the foundational architecture of the High-Fidelity Ingestion Pipeline developed within this research. The methodology is executed in three critical geometric phases: bounding box prediction via DocLayout-YOLO (a real-time detection transformer derivative), native primitive extraction via direct PDF stream parsing, and topological reading-order verification utilizing deterministic Recursive XY-Cut whitespace projections and VLM-based continuity scoring.
+This chapter details the foundational architecture of the High-Fidelity Ingestion Pipeline developed within this research. The methodology is executed in three critical geometric phases: bounding box prediction via DocLayout-YOLO \cite{doclayout_yolo} (a real-time detection transformer derivative), native primitive extraction via direct PDF stream parsing \cite{pdfplumber}, and topological reading-order verification utilizing deterministic Recursive XY-Cut whitespace projections \cite{xycut_ogorman} and VLM-based continuity scoring.
 
 \section{System Architecture and Ensemble Flow}
 \label{sec:system_architecture}
@@ -67,16 +67,16 @@ An MLP classification head assigns a category label $C_i \in \{ \text{Title, Hea
 While visual layout models are effective for geometric boundaries, they often struggle with fine-grained semantic distinctions, such as separating a bold paragraph from a section heading. The pipeline addresses this by parallelizing detection with native PDF primitive extraction using \textit{pdfplumber}.
 
 \subsection{FontAnalyzer and Stylesheet Hypotheses}
-For each detected text region, the \textit{FontAnalyzer} component extracts the dominant "font signature" --- comprising the font name, size, boldness, and color. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline constructs a \textit{DocumentStyleSheet}. 
+For each detected text region, the \textit{FontAnalyzer} component mathematically extracts the dominant "font signature" --- comprising the exact font name, absolute string size, boldness encoding, and RGB color values \cite{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \cite{pydantic}. 
 
-This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as "Text" by the visual model is promoted to "Heading" or "Title" if it possesses a font size exceeding 12pt and a bold weight flag, or if it consists entirely of uppercase characters within a specific length window. This hybrid approach leverages the geometric strengths of vision models while maintaining the semantic precision afforded by native document metadata.
+This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as generic "Text" by the visual model is automatically promoted to a structural "Heading" or "Title" if its font size exceeds 12pt and it possesses a bold weight flag, or if it consists entirely of uppercase characters within a highly specific width tolerance. This hybrid approach leverages the geometric strengths of modern vision transformers \cite{vit} while maintaining the pixel-perfect semantic precision afforded by native document metadata.
 
 \section{VLM reading-order Verification}
 \label{sec:vlm_verification}
 
 Recursive XY-Cuts (detailed in Section \ref{sec:xy_cuts}) provide a robust first pass for reading order, but complex layouts with interleaved columns or floating sidebars can still lead to semantic breaks. To ensure the integrity of the downstream extraction, the pipeline incorporates a \textit{VLM Verification} layer.
 
-A specialist Vision-Language Model receives the page image and the proposed reading order manifest. It acts as a "referee," scoring the flow continuity on a scale of 1 to 10 based on semantic and visual coherence. If the score falls below a defined threshold (e.g., indicating interleaved columns that disrupt a sentence), the pipeline flags the page for adaptive re-sorting or triggers a "column-first" processing mode. 
+A specialist Vision-Language Model \cite{qwen25} receives the page image and the proposed reading order manifest. It acts as a "referee," scoring the flow continuity on a scale of 1 to 10 based on semantic and visual coherence \cite{chain_of_thought}. If the score falls below a defined threshold (e.g., indicating interleaved columns that disrupt a sentence), the pipeline flags the page for adaptive re-sorting or triggers a "column-first" processing mode. 
 
 \section{Recursive XY-Cut Reading Order Algorithm}
 \label{sec:xy_cuts}
