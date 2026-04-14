@@ -27,14 +27,14 @@ To process tabular data with differing complexities, this thesis engineers an in
 This research introduces a Hierarchical Knowledge Graph (HKG) architecture to preserve the multi-modal "connective tissue" of industrial documents. By implementing a 3-pass construction algorithm with breadcrumb propagation, the pipeline ensures that every extracted text chunk carries its full semantic provenance, optimizing it for downstream RAG applications.
 
 \textbf{4. Parameter-Efficient Edge Deployment:}
-To ensure the multi-modal framework executes without relying on latency-heavy proprietary APIs, this thesis utilizes Knowledge Distillation. Using Low-Rank Adaptation (LoRA) and the Unsloth framework, the visual reasoning capabilities are distilled into an 11-Billion parameter Qwen2-VL student model, capable of high-throughput execution on a single consumer GPU without triggering CUDA memory failures.
+To ensure the multi-modal framework executes without relying on latency-heavy proprietary APIs, this thesis utilizes Knowledge Distillation. Using Low-Rank Adaptation (LoRA) and the Unsloth framework, the cognitive load is split into a Dual-Student Architecture. Visual mapping tasks are distilled into an 11-Billion parameter Llama-Vision model, while logical data extraction capabilities are distilled into a 7-Billion parameter Qwen2.5-VL student model. This enables high-throughput execution on a single consumer GPU without triggering CUDA memory failures.
 
 An overview of this proposed architecture is illustrated in Figure \ref{fig:overall_architecture}.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=1.2cm and 1cm,
+    node distance=1.5cm and 1cm,
     box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, fill=white, rounded corners=0.1cm},
     arrow/.style={->, thick, >=stealth}
 ]
@@ -43,10 +43,10 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
 \node[box, right=1.5cm of pdf, fill=cyan!10] (layout) {DocLayout-YOLO\\\& Reading Order};
 \node[box, below=1cm of layout, fill=yellow!10] (router) {Algorithmic\\Routing Engine};
 
-\node[box, below left=1.2cm and -1cm of router, fill=blue!10] (det) {Deterministic\\Analyzers};
-\node[box, below right=1.2cm and -1.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Qwen2-VL)};
+\node[box, below left=1.2cm and 0.5cm of router, fill=blue!10] (det) {Deterministic\\Analyzers};
+\node[box, below right=1.2cm and 0.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Qwen2-VL)};
 
-\node[box, below=1.5cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)};
+\node[box, below=2cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)};
 \node[box, below=1cm of qa, fill=purple!10] (hkg) {Hierarchical\\Knowledge Graph};
 
 \draw[arrow] (pdf) -- (layout);
