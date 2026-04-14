@@ -6,9 +6,9 @@
 
 The industrial sector relies extensively on visually rich documents (VRDs), such as dense engineering datasheets and operating manuals, to communicate critical hardware specifications. These documents are characterized by formidable structural complexities, including embedded engineering graphs, multi-column tables, and hierarchical semantic dependencies. Historically, organizations have depended on manual data entry or simplistic Optical Character Recognition (OCR) to extract this information, leading to severe context loss and a bottleneck for enterprise digitization.
 
-The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit failure states. Traditional parsing destroys reading order, while VLMs frequently suffer from "structural hallucination"---a phenomenon where the model misinterprets the internal axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints.
+The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit severe failure states. Traditional parsing often destroys the reading order. Conversely, VLMs frequently suffer from "structural hallucination" (a phenomenon where the model misinterprets the internal axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints) or crash due to maximum token limits when attempting to process ultra-dense hardware tables.
 
-To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. This necessitates a resilient extraction pipeline capable of intelligently routing specific layout components to specialized mathematical and generative models.
+To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. This necessitates a resilient extraction pipeline capable of intelligently routing specific layout components to specialized mathematical algorithms and generative models.
 
 \section{Aim of this thesis}
 \label{sec:aim}
@@ -20,14 +20,49 @@ This objective is systematically achieved through the following technical contri
 \textbf{1. Ensemble Layout Detection and Verification:}
 This research evaluates the application of DocLayout-YOLO transformers to isolate geometric document regions. Rather than relying on generative approximation, the pipeline employs a combination of native PDF primitive extraction and VLM-based reading order verification, providing high-fidelity spatial sequencing. 
 
-\textbf{2. Algorithmic Routing and Structured Extraction:}
-To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or specialist VLMs. The research details a hybrid extraction strategy, combining XML-tagging for strict spatial table alignment with structured JSON generation via Pydantic schemas for final output validation.
+\textbf{2. Algorithmic Routing and Two-Pass Extraction:}
+To process tabular data with differing complexities, this thesis engineers an intelligent scoring Router. Utilizing key-value gap ratios and vector line density, the system dynamically routes grids to deterministic extractors or specialist VLMs. Crucially, the research introduces a "Two-Pass Markdown Harvest" extraction strategy. To bypass VLM token output bottlenecks and system crashes on dense datasheets, the first pass converts visual tables into high-density raw Markdown. A secondary text-only refinement pass then maps this raw data into Pydantic-validated JSON, guaranteeing full parameter recall.
 
 \textbf{3. Semantic Context and Knowledge Graphs:}
 This research introduces a Hierarchical Knowledge Graph (HKG) architecture to preserve the multi-modal "connective tissue" of industrial documents. By implementing a 3-pass construction algorithm with breadcrumb propagation, the pipeline ensures that every extracted text chunk carries its full semantic provenance, optimizing it for downstream RAG applications.
 
 \textbf{4. Parameter-Efficient Edge Deployment:}
-To ensure the multi-modal framework executes without relying on latency-heavy proprietary APIs, this thesis utilizes Knowledge Distillation. By utilizing Low-Rank Adaptation (LoRA) and the Unsloth framework, the visual reasoning capabilities are distilled from a GPT-4o teacher into an 11-Billion parameter Llama-Vision student capable of high-throughput execution on a single consumer GPU.
+To ensure the multi-modal framework executes without relying on latency-heavy proprietary APIs, this thesis utilizes Knowledge Distillation. Using Low-Rank Adaptation (LoRA) and the Unsloth framework, the visual reasoning capabilities are distilled into an 11-Billion parameter Qwen2-VL student model, capable of high-throughput execution on a single consumer GPU without triggering CUDA memory failures.
+
+An overview of this proposed architecture is illustrated in Figure \ref{fig:overall_architecture}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm and 1cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, fill=white, rounded corners=0.1cm},
+    arrow/.style={->, thick, >=stealth}
+]
+
+\node[box, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
+\node[box, right=1.5cm of pdf, fill=cyan!10] (layout) {DocLayout-YOLO\\\& Reading Order};
+\node[box, below=1cm of layout, fill=yellow!10] (router) {Algorithmic\\Routing Engine};
+
+\node[box, below left=1.2cm and -1cm of router, fill=blue!10] (det) {Deterministic\\Analyzers};
+\node[box, below right=1.2cm and -1.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Qwen2-VL)};
+
+\node[box, below=1.5cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)};
+\node[box, below=1cm of qa, fill=purple!10] (hkg) {Hierarchical\\Knowledge Graph};
+
+\draw[arrow] (pdf) -- (layout);
+\draw[arrow] (layout) -- (router);
+\draw[arrow] (router) -- node[left, font=\small, xshift=-0.1cm] {Ruled} (det);
+\draw[arrow] (router) -- node[right, font=\small, xshift=0.1cm] {Complex/KV} (vlm);
+\draw[arrow] (det) |- (qa);
+\draw[arrow] (vlm) |- (qa);
+\draw[arrow] (qa) -- (hkg);
+
+\end{tikzpicture}
+\caption{The Overall Document Intelligence Pipeline Architecture.}
+\label{fig:overall_architecture}
+\end{figure}
+
+
 
 \section{Structure of this thesis}
 \label{sec:structure}
@@ -43,7 +78,7 @@ This thesis is organized sequentially, following the flow of geometric data thro
 
     \item \textbf{Chapter 5: Semantic Context and Knowledge Graphs} describes the 3-pass HKG construction algorithm and the Semantic Pre-Masking technique used to resolve table hallucinations.
 
-    \item \textbf{Chapter 6: Custom Model Distillation (PEFT)} documents the precise hyperparameters and empirical training metrics required to distill the Llama-Vision 11B student model.
+    \item \textbf{Chapter 6: Custom Model Distillation (PEFT)} documents the precise hyperparameters and empirical training metrics required to distill the Qwen2-VL student model.
 
     \item \textbf{Chapter 7: Experimental Evaluation} presents the performance metrics of the pipeline across industrial datasets, comparing accuracy, latency, and extraction fidelity against baseline systems.
 

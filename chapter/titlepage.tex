@@ -20,14 +20,13 @@
   
   \vspace{3cm}
   \renewcommand{\arraystretch}{.9}
-  \begin{tabular}{cc}
-	\multicolumn{2}{c}{\small Advisers:} \\[1mm]
-	{\small Supervisor} & {\small Supervisor} \\
-	{\large Betreuer 1} & {\large Betreuer 2} \\[2mm]
-	{\small \myschool} 			 & {\small \myschool} \\
-	{\small \myuni} 			 & {\small \myuni} 	\\
-	{\small \myunistreet} 		 & {\small \myunistreet} \\
-	{\small \myunizipcity}		 & {\small \myunizipcity} 
+  \begin{tabular}{c}
+	{\small Supervisor:} \\[1mm]
+	{\large Prof. Dr. Till Mossakowski} \\[2mm]
+	{\small \myschool} \\
+	{\small \myuni} \\
+	{\small \myunistreet} \\
+	{\small \myunizipcity}
   \end{tabular}
   
 		\renewcommand{\arraystretch}{1}
@@ -61,48 +60,12 @@
 \section*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-Industrial technical documents --- product datasheets, operating manuals, and engineering specifications --- represent one of the most information-dense and structurally complex document classes encountered in enterprise environments. Existing extraction approaches, ranging from commercial OCR engines to general-purpose Vision-Language Models (VLMs), fail systematically on these materials. Layout-only parsers destroy multi-column reading order and misinterpret embedded schematics as tabular data; generative VLMs, when applied without structural constraints, produce confident but structurally invalid outputs by hallucinating table rows from graphical axes and schematic wiring diagrams.
+Industrial technical documents, such as product datasheets, operating manuals, and engineering specifications, represent one of the most information-dense and structurally complex document classes encountered in enterprise environments. Existing extraction approaches, ranging from commercial OCR engines to general-purpose Vision-Language Models (VLMs), systematically fail on these materials. Layout-only parsers destroy multi-column reading order and misinterpret embedded schematics as tabular data. Generative VLMs, when applied without structural constraints, produce confident but structurally invalid outputs due to token limits and hallucination when converting dense tables into structured JSON.
 
-This thesis presents a multi-stage document intelligence pipeline specifically designed for industrial Visually Rich Documents (VRDs). The approach decouples the document understanding problem into four sequential layers. First, a DocLayout-YOLO detector isolates semantic regions, combined with deterministic column-aware reading-order sorting and a VLM-based referee for verification. Second, an algorithmic routing engine classifies each detected table region by computing vector line density and gap-ratio scores, dispatching grids to deterministic extractors or constrained generative specialists as appropriate. Third, a Semantic Pre-Masking algorithm surgically removes embedded engineering figures from the image tensor before Table Structure Recognition inference, resolving the hallucination problem at its geometric root. Finally, the pipeline assembles a Hierarchical Knowledge Graph (HKG) from the extracted regions, encoding section breadcrumbs, spatial caption links, and cross-document references for downstream use. To enable local, low-latency deployment, the visual reasoning capabilities required by the routing and verification layers are distilled into an 11-billion parameter student model (LLaMA-3.2-Vision) via Low-Rank Adaptation on a single consumer GPU, with training supervised by a GPT-4 teacher on a dataset of industrial table crops.
+This thesis presents a multi-stage document intelligence pipeline specifically designed for industrial Visually Rich Documents (VRDs) to address these limitations. The approach decouples the document understanding problem into sequential layers. First, a DocLayout-YOLO detector isolates semantic regions, combined with deterministic column-aware reading-order sorting and a VLM-based referee for verification. Second, an algorithmic routing engine classifies each detected table region by computing vector line density and gap-ratio scores, dispatching grids to deterministic extractors or constrained generative specialists as appropriate. To enable local, low-latency deployment and robust table classification, visual reasoning capabilities are distilled into an 11-billion parameter student model (Qwen2-VL) via Low-Rank Adaptation on a single consumer GPU, with training supervised by a highly capable teacher model on a dataset of industrial table crops. 
 
+Crucially, the pipeline introduces a "Two-Pass Markdown Harvest" architecture for data extraction. The first pass bypasses JSON token overhead limit by converting visual tables directly into high-density Markdown representations. The second pass applies a rigorous text-to-schema refinement, ensuring complete parameter recall and perfect Pydantic validation. The pipeline ultimately assembles a Hierarchical Knowledge Graph (HKG) from the extracted regions, encoding section breadcrumbs, spatial caption links, and cross-document references. Evaluated against rigorous structural and extraction benchmarks on dense industrial datasheets, the proposed solution recovers 100\% of technical parameters, maintaining absolute structural integrity while solving the truncation bottlenecks of traditional VLM single-pass extraction.
 
-\cleardoublepage
-% =============================================================================
-
-
-\thispagestyle{plain}
-\phantom{.}
-\vspace{70mm}
-
-\begin{center}
-	\todo[inline]{This section is optional! It is basically an motivational cite for this work as it can be found in many books. Example is provided}
-	\textit{
-		\vspace{0.5cm}
-		The validation of clustering structures is \\
-		the most difficult and frustrating part of cluster analysis. \\ 
-		\vspace{0.5cm}
-		Without a strong effort in this direction, \\
-		cluster analysis will remain a black art 
-		accessible only to those \\
-		true believers who have experience and great courage.}
-\end{center}
-\begin{flushright}
-%	\citet{Jain1988}
-	Anil K. Jain and Richard C. Dubes
-\end{flushright}
-
-%\uselengthunit{mm}
-%textwidth=\printlength{\textwidth}\\
-%textheight=\printlength{\textheight}\\
-%top=\printlength{\top}\\
-
-\cleardoublepage
-% =============================================================================
-
-
-\thispagestyle{plain}
-\section*{Acknowledgements}
-\todo[inline]{This section is optional!}
 
 \cleardoublepage
 % =============================================================================

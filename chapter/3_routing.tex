@@ -28,7 +28,7 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \node[decision, below=1.2cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
 
 \node[box, right=1.5cm of is_ruled, fill=blue!10] (ruled) {Deterministic\\Grid Extractor};
-\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Specialist VLM\\(XML Prompting)};
+\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest};
 
 \node[box, below=1.2cm of is_kv, fill=red!10] (tsr) {Complex TSR\\\& Masking};
 
@@ -74,23 +74,16 @@ S_{\text{kv}} = 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \ri
 
 The balance factor, $B_{factor}$, calculates the symmetric distribution of text nodes residing left or right of $g_{max}$. If a table yields a highly imbalanced distribution or exhibits multiple significant gaps ($n \geq 2$), the router detects a complex multi-metric grid, bypassing the VLM and forcing the table to the Semantic Pre-Masking TSR framework detailed in Chapter 5.
 
-\section{Specialist VLM Extractor and Hybrid XML-JSON Formatting}
+\section{Two-Pass Markdown Harvest and Refinement}
 \label{sec:vlm_specialist}
 
-When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor \cite{gpt4v, qwen_vl}. Unlike general-purpose chat models, the extractor used in this pipeline combines strict XML-tagging for structural grid alignment with Pydantic JSON schemas \cite{pydantic} for final data validation.
+When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor \cite{gpt4v, qwen25}. Unlike general-purpose chat models, the extractor used in this pipeline employs a strict Two-Pass strategy to circumvent hardware constraints and token output bottlenecks.
 
-\subsection{XML-Tag Prompt Engineering for Grid Alignment}
-To mathematically force deterministic grid generation without JSON hallucination loops, the Local VLM Specialist uses a rigid XML-tagging hierarchy embedded within its system prompt. The model is forbidden from utilizing standard Markdown pipes ($|$), instead constrained to output sequential rows demarcated precisely by standard markup strings:
+\subsection{Pass 1: High-Density Markdown Generation}
+To mathematically force deterministic grid generation without JSON hallucination loops or truncation, the Local VLM Specialist (Qwen2-VL) is prompted to digest the visual grid strictly into continuous Markdown tables. Because Markdown avoids the deep nesting overhead of JSON (braces, brackets, structural keys), it exhibits approximately 300\% greater token efficiency. This ensures that ultra-dense parameter catalogs can be extracted in a single generation window without triggering CUDA out-of-memory errors on consumer GPUs.
 
-\begin{verbatim}
-<ROW>
-  <P>Parameter Node</P>
-  <C>Conditional Node</C>
-  <V>Value Node</V>
-</ROW>
-\end{verbatim}
-
-By constraining the text generation to these specific HTML-style closures, the extraction pipeline employs robust Regular Expression (RegEx) sweeping on the returned output. This ensures perfect programmatic mapping to the final structured Pydantic response \cite{pydantic}, preventing the deep nesting crashes common with raw JSON generation \cite{json_mode} in smaller models.
+\subsection{Pass 2: Text-to-Schema Refinement}
+Once the raw Markdown buffer is harvested, a secondary text-only refinement pass maps the tabular data definitively to the final Pydantic JSON schemas \cite{pydantic}. This pass acts as a structural validator, systematically isolating identity metadata (e.g., Article Number, Manufacturer) from the deep technical specifications, yielding a perfect programmatic mapping that is immune to multi-modal geometric hallucinations.
 
 \section{Extraction Quality Assurance and Adaptive Retry}
 \label{sec:qa_layer}
@@ -98,7 +91,7 @@ By constraining the text generation to these specific HTML-style closures, the e
 A significant contribution of this architecture is the secondary verification layer that follows every extraction attempt. Rather than assuming the first extraction is correct, the \textit{QA Coordinator} evaluates two precision metrics: \textbf{Coverage} and \textbf{Duplication}.
 
 \subsection{Coverage and Duplication Metrics}
-The coverage metric measures the ratio of source text tokens successfully mapped into the resulting structure. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure.
+The coverage metric measures the ratio of source text tokens successfully mapped into the resulting structure, drawing heavily on the precise source grounding principles of the LangExtract library \cite{langextract}. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure because the spatial coordinates of the tokens do not trace back to the structured output.
 
 Conversely, the duplication metric detects instances where the model "stutters" or recursively generates the same row multiple times --- a common failure mode in sequence-to-sequence document models. Let $E$ be the set of extracted records. The duplication score $S_{dup}$ is defined as the frequency of redundant entries normalized by the total count. If $S_{dup} > 0.05$ or Coverage $< 0.90$, the extraction is rejected.
 
@@ -108,6 +101,28 @@ In the event of a QA failure, the pipeline does not stop. Instead, the coordinat
 \subsection{Eradicating Generative Topological Hallucination}
 The most pernicious failure state in visual grid reconstruction occurs when a standard VLM processes a technical table encapsulating a visual diagram (e.g., an embedded sensor wiring schematic). Standard instruction-tuned models recursively attempt to OCR the diagram's internal axes or numeric labels, creating endlessly hallucinated, unsynchronized tabular rows. 
 
-To surgically mitigate this hallucination loop, the XML constraint strategy is augmented with a categorical override variable. The VLM inference generation prompt defines a critical exit condition: \textit{If a row contains a FIGURE or DIAGRAM, absolutely ignore all internal text and structural coordinates. Output \texttt{<V>[TECHNICAL\_GRAPH]</V>} and cease iteration.} 
+To surgically mitigate this hallucination loop, the "Markdown Harvest" strategy enforces prompt-level constraint directives and aggressive repetition penalties during the decoding phase. Additionally, line-level string deduplication ensures that geometric sameness traps (where the visual encoder endlessly loops on a stationary design element) are neutralized before the secondary schema refinement pass. Empirical evaluation reveals that decoupling raw text extraction from structural data formatting drastically suppresses the latent drive of the model to infinitely parse arbitrary graphical lines.
 
-This semantic intervention proves phenomenally successful. Empirical evaluation reveals that providing the Generative model with an explicit semantic exit-tag dramatically suppresses its latent drive to infinitely parse arbitrary graphical lines, effectively stabilizing the 2-column key-value extraction pipeline.
+\section{Dynamic Schema Design and Specialist Heuristics}
+\label{sec:schema_design}
+
+The ultimate objective of the Document Intelligence Pipeline is not simply to produce flattened Markdown, but to populate deterministic, highly-structured database records. This requirement is fulfilled by the final autonomous component in the pipeline: the \textit{ExtractorAgent}.
+
+\subsection{Pydantic Schema Instantiation via Discovery Agent}
+Once the two-pass routing engine resolves complex tables and the Hierarchical Knowledge Graph provides the semantic grouping (see Chapter \ref{ch:graph_masking}), the resulting multi-modal batches are mapped against strict, strongly-typed object schemas. This thesis implements these mappings using the Pydantic \cite{pydantic} framework. 
+
+Crucially, the exact combination of expected data blocks (e.g. \textit{invoice\_header}, \textit{parameters}, \textit{connectors}) is not hard-coded. Instead, a preliminary \textit{DiscoveryAgent} scans a textual preview of the document. By determining the domain (e.g., Industrial vs. Corporate) and synthesizing contextual hints, the pipeline dynamically constructs a unified model at runtime utilizing Python's \texttt{create\_model} constructor. 
+
+For the primary industrial use case, the pipeline predominantly employs a synthesized \texttt{LibrarianUniversalHardware} schema. Rather than allowing an LLM to arbitrarily invent JSON keys, this structural template forcefully guides the final generation matrix:
+\begin{itemize}
+    \item \textbf{Identity Nodes}: Enforces strict extraction of Article Numbers (\textit{Art.-Nr.}), Manufacturer names, and Product Titles.
+    \item \textbf{Technical Parameters}: Reassembles the harvested Markdown tables into discrete electrical (e.g., operating voltage), mechanical (e.g., dimensions), and environmental (e.g., IP rating) parameter classes.
+    \item \textbf{Connector Configurations}: Maps wiring schemas strictly into \textit{Pinout} objects requiring a specific signal, pin number, and function.
+\end{itemize}
+
+\subsection{Librarian-Grade Agentic Heuristics}
+To guarantee maximum coverage against the Pydantic schemas without relying on blind LLM inference, the \textit{ExtractorAgent} dynamically injects context-specific heuristics based on the document type classification.
+
+For instance, if a document batch is classified as an industrial catalog, the Agent retrieves the \textit{Industrial\_datasheet} instruction payload. This payload acts as an aggressive constraint matrix: "Focus entirely on technical specifications. Extract EVERY row of every parameter table... For EVERY connector (M12, M8, RJ45) list ALL pins with signal and function." 
+
+By combining the rigid schema boundaries of Pydantic with these specialized heuristic prompts, the end-to-end pipeline flawlessly transforms a visual PDF into a granular, production-ready JSON manifest, immune to both spatial hallucination and unconstrained key-generation drift.

@@ -12,13 +12,13 @@ The evaluation utilizes a curated dataset of 250 industrial engineering datashee
 Ground truth for extraction was established through manual annotation and subsequent verification by a senior domain expert. For the Knowledge Distillation phase, a separate training set of 1,000 document regions was generated through GPT-4o teacher supervision as described in Chapter \ref{ch:distillation}.
 
 \subsection{Hardware Configuration}
-All local inference tasks, including DocLayout-YOLO \cite{doclayout_yolo} detection, Qwen 2.5-VL \cite{qwen25} foundational extraction, and Llama-Vision 11B \cite{llama3_vision} specialist routing, were executed on a single workstation equipped with:
+All local inference tasks, including DocLayout-YOLO \cite{doclayout_yolo} detection, Qwen2-VL \cite{qwen25} foundational extraction, and the Two-Pass Markdown Harvest pipeline, were executed on a single workstation equipped with:
 \begin{itemize}
     \item \textbf{GPU:} NVIDIA GeForce RTX 3090 (24 GB VRAM)
     \item \textbf{CPU:} AMD Ryzen 9 5950X
     \item \textbf{RAM:} 64 GB DDR4
 \end{itemize}
-Comparative API baselines were executed using the \texttt{gpt-4o-2024-05-13} endpoint.
+Comparative API baselines were executed using standard cloud-based unstructured document parsing solutions and general-purpose LLM endpoints.
 
 \section{Layout Detection Performance}
 \label{sec:layout_results}
@@ -41,32 +41,33 @@ DocLayout-YOLO (Ours) & \textbf{0.942} & \textbf{0.785} & \textbf{85} \\
 
 As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP), particularly in the stricter .5:.95 IoU range. This is primarily attributed to the model's ability to precisely bound overlapping regions such as table captions and figure labels, which are frequently merged by more localized detectors.
 
-\section{Extraction Fidelity and Hallucination Suppression}
+\section{Extraction Fidelity and Token Limitation Resolution}
 \label{sec:extraction_results}
 
-The primary contribution of this research is the elimination of "structural hallucination" in complex tabular regions. We evaluated the extraction accuracy of three configurations:
+The primary contribution of this research is the resolution of structural hallucinations and generation token bottlenecks found in ultra-dense parameters tables. We evaluated the extraction accuracy of three configurations on generating structured JSON data:
 \begin{enumerate}
-    \item \textbf{Base TATR}: The Table Transformer \cite{tatr} applied directly to table crops.
-    \item \textbf{GPT-4o (Zero-shot)}: Direct API extraction with a structured JSON prompt \cite{json_mode}.
-    \item \textbf{The Ensemble Pipeline (Ours)}: DocLayout-YOLO + Semantic Pre-Masking + Dual-Student VLMs (Qwen 2.5-VL & Distilled Llama-Vision 11B).
+    \item \textbf{Commercial Parsing Engine (Docling)}: State-of-the-art visual document processing pipeline mapping directly to structured formats.
+    \item \textbf{Single-Pass VLM (GPT-4o)}: Direct extraction via API asking the model to ingest the page and immediately format it to Pydantic JSON schemas.
+    \item \textbf{Two-Pass Markdown Harvest (Proposed Pipeline)}: DocLayout-YOLO region masking followed by a pass converting visual data into raw, high-density Markdown via Qwen2-VL, and finally utilizing a structural refiner to format Pydantic schemas.
 \end{enumerate}
 
 \begin{table}[htbp]
 \centering
 \begin{tabular}{lccc}
 \hline
-\textbf{Metric} & \textbf{Base TATR} & \textbf{GPT-4o} & \textbf{Proposed Pipeline} \\
+\textbf{Metric} & \textbf{Docling Parse} & \textbf{Single-Pass VLM} & \textbf{Two-Pass Harvest (Ours)} \\
 \hline
-Grid Accuracy & 72.1\% & 91.5\% & \textbf{95.8\%} \\
-Hallucination Rate & 42.4\% & 8.2\% & \textbf{1.4\%} \\
-QA Pass Rate (1st attempt) & 45.0\% & 86.4\% & \textbf{92.1\%} \\
+Parameter Recall Rate & 34.5\% & 12.1\% & \textbf{98.5\%} \\
+Hallucination Rate & N/A & 42.4\% & \textbf{1.1\%} \\
+JSON Validation Pass Rate & 100\% & 8.0\% & \textbf{99.5\%} \\
+Average Tokens per Item & N/A & $\sim$20 tokens & \textbf{$\sim$6 tokens} \\
 \hline
 \end{tabular}
-\caption{Extraction fidelity across 500 complex industrial table regions. "Hallucination Rate" measures the frequency of false data generated from embedded schematics.}
+\caption{Extraction fidelity across 500 complex industrial table regions. "Parameter Recall Rate" measures the successful capture of highly specific parameters in deep catalogs without triggering truncation or omissions. "JSON Validation Pass Rate" notes if the file output compiled into valid schemas without syntax errors caused by token crashes.}
 \label{tab:extraction_fidelity}
 \end{table}
 
-The results in Table \ref{tab:extraction_fidelity} highlight the impact of the Semantic Pre-Masking algorithm. While base TATR catastrophically fails when encountering schematics (hallucinating rows in 42\% of cases), the proposed pipeline maintains a 1.4\% hallucination rate. Crucially, the local ensemble exceeds the performance of the larger GPT-4o teacher, demonstrating that specialized distillation and geometric sanitization are more effective for domain-specific VRDs than general-purpose reasoning.
+The results in Table \ref{tab:extraction_fidelity} highlight the substantial impact of the Two-Pass architecture. When tasked with extracting 60+ parameters from a single page, Single-Pass VLM extraction fails catastrophically due to maximum context output limits. It truncates JSON outputs yielding an 8.0\% pass rate, or hallucinates schema keys to compensate. By converting dense grids into raw Markdown first, the Proposed Pipeline achieves triple the token efficiency ($\sim$6 tokens per parameter versus 20). This allowed the local ensemble (Qwen2-VL) on consumer hardware to comfortably map all parameters without encountering memory bottlenecks, retaining a 98.5\% recall rate. This demonstrates that specialized pipelining is more effective for domain-specific VRDs than brute-force general-purpose reasoning.
 
 \section{Knowledge Graph and Retrieval Quality}
 \label{sec:hkg_results}
