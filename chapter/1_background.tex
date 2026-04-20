@@ -23,24 +23,34 @@ As depicted in Figure~\ref{fig:detr_evolution}, DETR predicts a fixed set of bou
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=1.5cm and 1cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, rounded corners=0.1cm},
+    node distance=1.8cm and 1.2cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=4.5cm, minimum height=1.2cm, rounded corners=0.1cm},
+    circ/.style={circle, draw, thick, inner sep=2pt, fill=white},
     arrow/.style={->, thick, >=stealth}
 ]
 
-\node[box, fill=gray!10] (img) {Document Page Tensor\\$1024 \times 1024$};
-\node[box, below=1cm of img, fill=blue!10] (cnn) {CNN Backbone\\Feature Extraction};
-\node[box, below=1cm of cnn, fill=red!10] (encoder) {Transformer Encoder\\(Global Self-Attention)};
-\node[box, below=1cm of encoder, fill=orange!10] (decoder) {Transformer Decoder\\(Object Queries)};
-\node[box, below=1cm of decoder, fill=green!10] (ffn) {Feed-Forward Heads\\(BBox \& Class)};
+\node[box, fill=gray!10] (img) {\textbf{Input Document Image} \\ $1024 \times 1024 \times 3$};
+\node[box, below=1.2cm of img, fill=blue!10] (cnn) {CNN Backbone \\ (ResNet-50/101 Features)};
+\node[box, below=1.2cm of cnn, fill=red!10] (encoder) {Transformer Encoder \\ (Global Self-Attention)};
+\node[box, right=2cm of cnn, fill=purple!10, minimum width=3cm] (pos) {Positional \\ Encodings};
+
+\node[box, below=1.2cm of encoder, fill=orange!10] (decoder) {Transformer Decoder \\ (Cross-Attention)};
+\node[box, left=2cm of decoder, fill=cyan!10, minimum width=3cm] (queries) {Learned \\ Object Queries};
+
+\node[box, below=1.2cm of decoder, fill=green!10] (ffn) {Prediction Heads \\ (BBox Regression \& Class)};
 
 \draw[arrow] (img) -- (cnn);
 \draw[arrow] (cnn) -- (encoder);
+\draw[arrow] (pos) |- (encoder);
 \draw[arrow] (encoder) -- (decoder);
+\draw[arrow] (queries) -- (decoder);
 \draw[arrow] (decoder) -- (ffn);
 
+% Highlight Set Prediction Nature
+\node[below=0.5cm of ffn, font=\small\itshape] (note) {Direct Set Prediction via Hungarian Bipartite Matching};
+
 \end{tikzpicture}
-\caption{The Detection Transformer (DETR) architecture \citep{detr_carion}. By replacing the Region Proposal Network with a globally attentive encoder--decoder, DETR predicts bounding boxes without hand-tuned anchors.}
+\caption{The Detection Transformer (DETR) architecture \citep{detr_carion}. By combining a CNN backbone for feature extraction with a globally-attentive Transformer encoder-decoder, the model eliminates the need for hand-crafted anchors and NMS, instead predicting a fixed set of $N$ objects directly.}
 \label{fig:detr_evolution}
 \end{figure}
 
