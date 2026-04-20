@@ -51,8 +51,13 @@ To functionally validate the performance of DocLayout-YOLO against highly dense,
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{images/Super_Complex_2.pdf}
-\\[1cm] % Add some vertical space between images
+\caption{Visual layout detection (Before): Raw structural PDF of a dense engineering catalog.}
+\label{fig:app_bbox_before}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
 \includegraphics[width=0.85\textwidth]{images/layout_visualizations.pdf}
-\caption{Visual layout detection applied to a dense engineering catalog. Top: Raw structural PDF. Bottom: Corresponding DocLayout-YOLO prediction tensors encapsulating the regions.}
-\label{fig:app_bbox}
+\caption{Visual layout detection (After): Corresponding DocLayout-YOLO prediction tensors encapsulating the regions.}
+\label{fig:app_bbox_after}
 \end{figure}
