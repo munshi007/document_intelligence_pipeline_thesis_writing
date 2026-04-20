@@ -72,6 +72,28 @@ These font signatures are used downstream by a \textit{FontAnalyzer} component t
 
 Once layout detection has localized table regions, the internal row--column grid must be reconstructed into a machine-readable form. This task, known as Table Structure Recognition (TSR), is considerably more difficult than layout detection because many industrial tables lack explicit, continuous grid lines; alignment is instead implied by whitespace alone.
 
+\subsection{The Heuristic and Deep Learning Eras of TSR}
+\label{subsec:tsr_evolution}
+
+The challenge of TSR has historically been approached through two wildly divergent paradigms: bottom-up heuristics and top-down deep learning.
+
+Initially, heuristic systems heavily utilized the X-Y Cut algorithm. X-Y Cut functions by creating horizontal and vertical projection profiles (histograms of ink density) across the isolated table region. Troughs in the density profile theoretically indicate the empty spaces forming rows and columns. While highly deterministic, X-Y Cut is exceptionally brittle. If an industrial table cell contains a multi-line paragraph that overlaps vertically with text in an adjacent column (or features spanning header cells), the projection profile becomes scrambled, causing the algorithm to merge distinct columns or shatter single rows into meaningless fragments.
+
+This brittleness instigated the shift towards deep learning. Early Convolutional Neural Network (CNN) approaches attempted to adapt pixel-masking algorithms (like Mask R-CNN \cite{matterport_maskrcnn}) to identify cell boundaries. However, tables are fundamentally grid topologies, not arbitrary organic shapes. CNNs inherently struggle with the rigid topological graphs required for TSR because their receptive fields often fail to learn that a vertical ruling line on the far left of an image must mathematically align with a cell boundary spanning the entire image height.
+
+To resolve this topological constraint, research heavily pivoted toward Graph Neural Networks (GNNs). In GNN architectures for TSR (such as TGRNet), document tokens (detected via OCR) are treated as nodes in a fully connected spatial graph. The neural network's objective is to prune edges between nodes that do not belong to the same logical row or column. While GNNs provide excellent topological reasoning, their computational complexity scales quadratically with the number of text tokens. A dense industrial parameter table containing 2,000 words forces the GNN to evaluate 4,000,000 potential edge alignments, triggering massive Out-Of-Memory (OOM) failures on standard edge hardware.
+
+\subsection{Encoder-Only vs Causal Decoders for Spatial Reasoning}
+\label{subsec:encoder_vs_decoder}
+
+The modern era of TSR is entirely dominated by the Transformer architecture. However, understanding the frequent catastrophic failures of recent Vision-Language Models (VLMs) like GPT-4o requires a strict delineation between Encoder-Only architectures and Causal Decoder architectures.
+
+Encoder-only models, such as LayoutLM and the Table Transformer (TATR), digest the entire image and its token sequence simultaneously. Because the bidirectional self-attention mathematical formulation ($Attention(Q,K,V) = softmax(\frac{QK^T}{\sqrt{d_k}})V$) permits every token to cross-reference every other token synchronously, the model excels at discrete spatial classification tasks. It can globally perceive that a "Voltage" header column spans the entire table length.
+
+Conversely, Causal Decoders (such as Llama-Vision, Qwen-VL, and the GPT-4 family) are fundamentally bound by the autoregressive masking objective. These models generate output tokens sequentially, conditioned exclusively on previously generated tokens ($P(w_t | w_{1:t-1})$). This means that when a VLM is tasked with extracting a 50-row table directly into JSON, it must generate the JSON keys and values linearly. By row 45, the mathematical "memory" of the absolute spatial coordinates of the table header (which was pushed outside the immediate sequence attention horizon due to context limits) degrades severely.
+
+This degradation manifests uniquely as "structural hallucination." Because the decoder cannot bidirectionally "look back" down the image grid while generating text, it begins to guess the column alignment based purely on semantic text probabilities rather than empirical geometric grounding. If an embedded engineering schematic features coordinate tick marks, the autoregressive decoder will hallucinate those ticks as tabular row values because the visual signal forces generation without the geometric restraint of a rigid spatial encoder. This fundamental flaw in Causal Decoders necessitates the dual-pass architectural routing mechanism engineered in Chapters \ref{ch:routing_vlm} and \ref{ch:masking}.
+
 \subsection{The Table Transformer (TATR)}
 
 The Table Transformer (TATR) \cite{tatr}, introduced by Smock et al., applies the DETR detection paradigm to the internal structure of a table crop. It predicts coordinate matrices for rows, columns, and spanning cells directly from the isolated image region, achieving high accuracy on clean, well-separated grids.

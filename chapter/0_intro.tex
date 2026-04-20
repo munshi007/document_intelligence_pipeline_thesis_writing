@@ -36,27 +36,27 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=1.5cm and 1cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=1cm, fill=white, rounded corners=0.1cm},
+    node distance=2.5cm and 2cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=3.5cm, minimum height=1.2cm, fill=white, rounded corners=0.1cm},
     arrow/.style={->, thick, >=stealth}
 ]
 
 \node[box, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
-\node[box, right=1.5cm of pdf, fill=cyan!10] (layout) {DocLayout-YOLO\\\& Reading Order\\ \textit{(Chapter 3)}};
-\node[box, below=1cm of layout, fill=yellow!10] (router) {Algorithmic\\Routing Engine\\ \textit{(Chapter 4)}};
+\node[box, right=2cm of pdf, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Chapter 3)}};
+\node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Chapter 4)}};
 
-\node[box, below left=1.2cm and 0.5cm of router, fill=blue!10] (det) {Deterministic\\Analyzers\\ \textit{(Chapter 4)}};
-\node[box, below right=1.2cm and 0.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Dual-Student)\\ \textit{(Chapter 4 \& 6)}};
+\node[box, below left=1.5cm and 0.5cm of router, fill=blue!10] (det) {\textbf{Deterministic Analyzers} \\ Grid Extractor \\ \textit{(Chapter 4)}};
+\node[box, below right=1.5cm and 0.5cm of router, fill=green!10] (vlm) {\textbf{Two-Pass Markdown Harvest} \\ Dual-Student Extractors \\ \textit{(Chapter 4 \& 6)}};
 
-\node[box, below=2.5cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)\\ \textit{(Chapter 4)}};
-\node[box, below=1cm of qa, fill=purple!10] (hkg) {Hierarchical\\Knowledge Graph\\ \textit{(Chapter 5)}};
+\node[box, below=4cm of router, fill=orange!10] (qa) {\textbf{QA \& Coverage Layer} \\ LangExtract AST Validation \\ \textit{(Chapter 4)}};
+\node[box, below=1.5cm of qa, fill=purple!10] (hkg) {\textbf{Hierarchical Knowledge Graph} \\ Serialized IR Generation \\ \textit{(Chapter 5)}};
 
 \draw[arrow] (pdf) -- (layout);
 \draw[arrow] (layout) -- (router);
-\draw[arrow] (router) -- node[left, font=\small, xshift=-0.1cm, align=right] {Ruled\\(Simple Grids)} (det);
-\draw[arrow] (router) -- node[right, font=\small, xshift=0.1cm, align=left] {Complex/KV\\(Dense Geometry)} (vlm);
-\draw[arrow] (det.south) -- ++(0,-0.5) -| (qa.north);
-\draw[arrow] (vlm.south) -- ++(0,-0.5) -| (qa.north);
+\draw[arrow] (router) -| node[above, align=center, xshift=-1cm] {Ruled\\(Simple Grids)} (det);
+\draw[arrow] (router) -| node[above, align=center, xshift=1cm] {Complex/KV\\(Dense Geometry)} (vlm);
+\draw[arrow] (det) |- (qa);
+\draw[arrow] (vlm) |- (qa);
 \draw[arrow] (qa) -- (hkg);
 
 \end{tikzpicture}

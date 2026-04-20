@@ -15,25 +15,25 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=1cm and 1.5cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=2.5cm, minimum height=0.8cm, rounded corners=0.1cm},
-    decision/.style={diamond, draw, thick, align=center, aspect=2, minimum width=2.8cm, inner sep=0pt},
+    node distance=1cm and 2cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=3cm, minimum height=1cm, rounded corners=0.1cm},
+    decision/.style={diamond, draw, thick, align=center, aspect=2.5, minimum width=4cm, inner sep=1pt},
     arrow/.style={->, thick, >=stealth}
 ]
 
 % Nodes
 \node[box] (input) {Table Region $B_{table}$};
-\node[box, below=0.6cm of input] (scores) {Compute $S_{ruled}$, $S_{kv}$};
+\node[box, below=0.8cm of input] (scores) {Compute $S_{ruled}$, $S_{kv}$};
 \node[decision, below=0.8cm of scores] (is_ruled) {$S_{ruled} > 0.4$?};
 \node[decision, below=1.2cm of is_ruled] (is_kv) {$S_{kv} > 0.8$?};
 
-\node[box, right=1.5cm of is_ruled, fill=blue!10] (ruled) {Deterministic\\Grid Extractor\\(Sec. 3.1.1)};
-\node[box, right=1.5cm of is_kv, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Sec. 3.2)};
+\node[box, right=2cm of is_ruled, fill=blue!10] (ruled) {Deterministic\\Grid Extractor\\(Sec. 3.1.1)};
+\node[box, right=2cm of is_kv, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Sec. 3.2)};
 
 \node[box, below=1.2cm of is_kv, fill=red!10] (tsr) {Complex TSR\\\& Masking\\(Chapter 5)};
 
-\node[box, below=1.0cm of vlm, fill=orange!10] (qa) {QA Layer\\(Coverage/Duplication)\\(Sec. 3.3)};
-\node[box, right=1.5cm of qa, fill=cyan!10] (extractor) {Extractor Agent\\(Sec. 3.4)};
+\node[box, below=1cm of vlm, fill=orange!10] (qa) {QA Layer\\(Coverage/Duplication)\\(Sec. 3.3)};
+\node[box, left=2cm of qa, fill=cyan!10] (extractor) {Extractor Agent\\(Sec. 3.4)};
 
 % Connections
 \draw[arrow] (input) -- (scores);
@@ -45,11 +45,11 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \draw[arrow] (is_kv) -- node[above, font=\small] {Yes} (vlm);
 \draw[arrow] (is_kv) -- node[left, font=\small] {No} (tsr);
 
-\draw[arrow] (ruled) |- (qa);
+\draw[arrow] (ruled.east) -| ++(0.5,0) |- (qa.east);
 \draw[arrow] (vlm) -- (qa);
 \draw[arrow] (qa) -- (extractor);
 
-\draw[arrow] (qa.south) -- node[below, font=\small] {Fail $\rightarrow$ Retry} +(0,-0.5) -| ([xshift=-1cm]scores.west) |- (scores.west);
+\draw[arrow] (qa.south) |- ++(0,-0.5) -| ([xshift=-2.5cm]scores.west) |- node[near start, left, font=\small] {Fail $\rightarrow$ Retry} (scores.west);
 
 \end{tikzpicture}
 \caption{The hierarchical routing and verification loop. Tables are routed based on geometric scores; the extraction is subsequently validated by a QA layer that can trigger fallback attempts.}
@@ -84,6 +84,15 @@ When the router encounters a structure that requires generative reasoning ($S_{\
 \subsection{Pass 1: High-Density Markdown Generation}
 To mathematically force deterministic grid generation without JSON hallucination loops or truncation, the Local VLM Specialist (Qwen2-VL) is prompted to digest the visual grid strictly into continuous Markdown tables. Because Markdown avoids the deep nesting overhead of JSON (braces, brackets, structural keys), it exhibits approximately 300\% greater token efficiency. This ensures that ultra-dense parameter catalogs can be extracted in a single generation window without triggering CUDA out-of-memory errors on consumer GPUs.
 
+\subsection{Generative Prompting and Temperature Bounds}
+\label{subsec:prompting_bounds}
+
+The robustness of the local VLM (Qwen2.5-VL) relies fundamentally on the deterministic architecture of the \texttt{System} Prompt instructions. When a tabular crop is injected into the VLM, a strict sequence of \textbf{Negative Constraints} is prepended to the system context. These directives explicitly command the model: "DO NOT invent column headers if none exist. DO NOT output conversational preamble. DO NOT interpolate table values."
+
+This behavior is enforced via strict \textbf{Temperature Bounds}. In autoregressive language modeling, the temperature variable ($T$) scales the logits before the softmax normalization ($softmax(z_i / T)$), directly altering the probability mass of subsequent tokens. A temperature of $T=1.0$ promotes standard language diversity. However, for tabular grid extraction, we mandate a temperature interval of $T \in [0.1, 0.2]$. This hyper-constrained bound brutally restricts the VLM generation to the absolute most probable structural tokens (e.g., standard Markdown pipes `|` and hyphens `-`), eliminating the creative entropy that typically instigates conversational "hallucinations" inside technical grids.
+
+Furthermore, dynamic \textbf{Few-Shot Demonstration} blocks are injected dynamically depending on the TableTypeRouter's geometric classification. If the table is classified as Key-Value ($S_{kv} > 0.8$), a perfectly formatted target representation is provided dynamically within the prompt context window. The combination of an extremely low temperature scalar and deterministic prompt constraints functionally transforms the Generative VLM into a rigid, non-creative OCR array decoder.
+
 \subsection{Pass 2: Text-to-Schema Refinement}
 Once the raw Markdown buffer is harvested, a secondary text-only refinement pass maps the tabular data definitively to the final Pydantic JSON schemas \cite{pydantic}. This pass acts as a structural validator, systematically isolating identity metadata (e.g., Article Number, Manufacturer) from the deep technical specifications, yielding a perfect programmatic mapping that is immune to multi-modal geometric hallucinations.
 
@@ -114,6 +123,13 @@ The ultimate objective of the Document Intelligence Pipeline is not simply to pr
 Once the two-pass routing engine resolves complex tables and the Hierarchical Knowledge Graph provides the semantic grouping (see Chapter \ref{ch:graph_masking}), the resulting multi-modal batches are mapped against strict, strongly-typed object schemas. This thesis implements these mappings using the Pydantic \cite{pydantic} framework. 
 
 Crucially, the exact combination of expected data blocks (e.g. \textit{invoice\_header}, \textit{parameters}, \textit{connectors}) is not hard-coded. Instead, a preliminary \textit{DiscoveryAgent} scans a textual preview of the document. By determining the domain (e.g., Industrial vs. Corporate) and synthesizing contextual hints, the pipeline dynamically constructs a unified model at runtime utilizing Python's \texttt{create\_model} constructor. Pydantic is a powerful data validation framework that forces Python dictionaries to strictly adhere to defined typings (e.g., ensuring a "Voltage" field only accepts floating-point numbers). The DiscoveryAgent effectively acts as a programmatic compiler, analyzing the unstructured headers and passing an array of expected string and float \texttt{kwargs} directly into the Pydantic \texttt{create\_model} function, synthesizing a rigid target object schema dynamically out of thin air.
+
+\subsection{LangExtract AST Analysis and Runtime Construction}
+\label{subsec:langextract_ast}
+
+The process of binding the unified string arrays to the dynamic Pydantic blueprint relies fundamentally on the internal architecture of the \texttt{LangExtract} \cite{langextract} library. Unlike archaic string-matching parsers, \texttt{LangExtract} operates on a programmatic level. When the Discovery Agent concludes the schema configuration, the pipeline passes the definitions through an Abstract Syntax Tree (AST) analyzer. This parser reads the dictionary schema structures and procedurally transpiles them into a native Python class definition stored internally in system memory.
+
+The AST runtime generation has severe operational benefits. By transforming dynamic JSON schemas into inherently typed logical expressions (e.g. mapping an arbitrary field \texttt{Max\_Current} strictly to a built-in \texttt{float} primitive representing Amperage), \texttt{LangExtract} inherently attaches recursive tracebacks. When the secondary extraction VLM is prompted with this generated AST blueprint, any syntax deviations triggering a validation failure immediately isolate the precise geometric row and token fault. This ensures deterministic rollback capabilities. Without runtime AST construction, the engine would be forced to execute brittle regular expressions to validate JSON outputs, drastically slowing the multi-stage extraction pipeline and crippling verification precision.
 
 For the primary industrial use case, the pipeline predominantly employs a synthesized \texttt{LibrarianUniversalHardware} schema. Rather than allowing an LLM to arbitrarily invent JSON keys, this structural template forcefully guides the final generation matrix:
 \begin{itemize}

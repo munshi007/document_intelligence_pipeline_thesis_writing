@@ -37,19 +37,24 @@ h = W_0 x + \Delta W x = W_0 x + BA x
 
 By restricting the rank to $r = 16$, the number of trainable parameters for both the Llama-Vision and Qwen2-VL runs was reduced by over 98\%, significantly lowering the VRAM required for gradient storage while maintaining the models' ability to conform to their specific training tasks.
 
-\section{Optimization Engine: Unsloth and Flash Attention}
+\section{Optimization Engine: Unsloth and Flash Attention 2}
 \label{sec:unsloth_training}
 
-Mathematical parameter reduction via LoRA solves part of the VRAM bottleneck, but natively executing attention gradients across extended document contexts rapidly triggers Out-Of-Memory (OOM) failures. To solve the hardware limits, the entire distillation suite was executed utilizing the \textbf{Unsloth} \cite{unsloth} framework.
+Mathematical parameter reduction via LoRA solves part of the VRAM bottleneck, but natively executing attention gradients across extended document contexts rapidly triggers Out-Of-Memory (OOM) failures. In standard Transformer architectures, the self-attention mechanism requires computing a sequence-to-sequence similarity matrix. For a sequence of length $N$, computing the softmax attention weights $S = \text{softmax}(QK^T / \sqrt{d})$ necessitates materializing an $N \times N$ matrix directly into High-Bandwidth Memory (HBM). When an industrial document necessitates a context window of $N=8192$ tokens, this single operation instantaneously demands several gigabytes of VRAM merely to store intermediate activations.
 
-Unsloth provided three radical interventions that made the Dual-Student training sequence possible on a single RTX 3090:
-\begin{itemize}
-    \item \textbf{Custom Triton Kernels}: Unsloth bypasses standard PyTorch abstractions, compiling hand-written Triton GPU kernels for the forward and backward passes. This removes redundant memory allocations during Cross-Entropy Loss calculations.
-    \item \textbf{Flash Attention 2}: By integrating Flash Attention 2 \cite{flash_attention}, Unsloth computes exact attention algebraically without ever materializing the massive $N \times N$ attention matrix into High Bandwidth Memory (HBM). For high-token-count industrial datasheets, this algorithmically prevents exponential VRAM scaling.
-    \item \textbf{4-bit VRAM Acceleration}: Unsloth actively supports RoPE (Rotary Position Embedding) optimizations and natively allows applying LoRA adapters directly to 4-bit loaded Base Models without manual gradient unscaling errors.
-\end{itemize}
+To solve these severe hardware limits, the entire distillation suite was executed utilizing the \textbf{Unsloth} \cite{unsloth} framework, which integrates the \textbf{Flash Attention 2} \cite{flash_attention} algorithm.
 
-With Unsloth integrated, training was executed for 1,000 steps with a global batch size of 8 (simulated via gradient accumulation), taking roughly 4 hours per model. Loss convergence was remarkably stable, proving the efficacy of distilling complex analytical skills into segmented, low-parameter agents. 
+\subsection{Algorithmic Tiling and Flash Attention}
+Flash Attention fundamentally restructures the GPU memory hierarchy during the forward and backward passes. Instead of loading the entire $Q$, $K$, and $V$ matrices from slow HBM into the ultra-fast (but highly constrained) SRAM, Flash Attention employs a technique known as \textit{Tiling}. It splits the matrices into smaller blocks and iteratively loads them into SRAM. 
+
+Crucially, Flash Attention 2 optimizes the backward pass (gradient computation). Standard mathematically exact attention requires saving the massive $N \times N$ matrix computed during the forward pass to apply the chain rule during backpropagation. Flash Attention 2 mathematically avoids this by re-computing the forward statistics (specifically the log-sum-exp stabilization variables) dynamically block-by-block on the backward pass. This algorithmic breakthrough means that VRAM usage scales linearly $O(N)$ with sequence length, rather than quadratically $O(N^2)$. For the Llama-Vision model processing visually dense 1024x1024 tensor grids alongside textual prompts, this optimization prevented instant CUDA memory failures.
+
+\subsection{Memory-Mapped Triton Compilation}
+Beyond Flash Attention, Unsloth provides radical memory optimizations specific to LoRA adapters. Standard implementation via the HuggingFace PEFT \cite{peft_houlsby} library initializes adapters using naive PyTorch operations. This frequently causes GPU fragmentation where the adapter tensors and the frozen base weights misalign in memory.
+
+Unsloth bypasses standard PyTorch abstractions entirely. It compiles bespoke Triton \cite{triton} GPU kernels specifically designed for the specific base architectures (e.g., Llama and Qwen2). These kernels aggressively fuse operations; for example, the Rotary Position Embedding (RoPE) application, the SwiGLU activation function, and the Cross-Entropy Loss computation are executed within a single kernel launch. This prevents the GPU from writing massive intermediate floating-point tensors back to HBM after every micro-operation.
+
+With Unsloth integrated and executing atop 4-bit quantized base weights, training was executed for 1,000 steps with a global batch size of 8 (simulated via gradient accumulation). The process required merely 15 GB of VRAM at peak usage, taking roughly 4 hours per model on the RTX 3090. This effectively democratizes enterprise-grade Multimodal pipeline deployment by allowing it to run within the strict hardware constraints native to highly-secured edge facilities. 
 
 \section{Training Loss and Convergence Analysis}
 \label{sec:training_loss}
