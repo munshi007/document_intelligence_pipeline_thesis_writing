@@ -42,7 +42,8 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
 ]
 
 \node[box, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Section 3.2)}};
-\node[box, left=2cm of layout, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
+\node[box, left=1.8cm of layout, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
+\node[box, right=1.8cm of layout, draw=none, fill=none] (phantom) {}; % Symmetric phantom node to center correctly
 \node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Section 4.1)}};
 
 \node[box, below left=1.5cm and 0.5cm of router, fill=blue!10] (det) {\textbf{Deterministic Analyzers} \\ Grid Extractor \\ \textit{(Section 4.2)}};
