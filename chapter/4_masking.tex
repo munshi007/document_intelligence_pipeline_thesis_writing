@@ -17,7 +17,7 @@ WhenTATR executes inference over the parent table bounding box, its convolutiona
 \section{The Semantic Pre-Masking Algorithm}
 \label{sec:pre_masking_logic}
 
-To permanently circumvent generative visual hallucination, this thesis engineers an absolute \textit{Semantic Pre-Masking} algorithm. The fundamental logic dictates that if a visual model hallucinates false rows when observing complex schematics, the mathematical tensor underlying those schematics must be erased from the observation prior to inference execution.
+To permanently circumvent generative visual hallucination, this thesis engineers an absolute \textit{Semantic Pre-Masking} algorithm—"absolute" indicating that the intervention performs destructive, irreversible optical redaction on the tensor prior to inference. The fundamental logic dictates that if a visual model hallucinates false rows when observing complex schematics, the mathematical tensor underlying those schematics must be erased from the observation prior to inference execution.
 
 Instead of relying on fragile Large Language Model (LLM) instruction tuning to "ignore the graph", the intervention is purely geometrical and localized directly on the raw image array.
 
@@ -26,12 +26,14 @@ The mechanism relies on the metadata synchronization established during the init
 Let $T_{crop}$ denote the high-resolution NumPy pixel tensor array representing the structural crop of the localized Table bounding box, bounded by $B_{table} = (X_{min}, Y_{min}, X_{max}, Y_{max})$.
 Let $F$ represent the set of all raster images and `Figure` bounding boxes independently identified via DocLayout-YOLO residing within the parent document.
 
-The algorithmic algorithm mathematically projects the spatial constraints of any external figures $f_i$ directly onto the Table's localized sub-tensor. If the absolute bounding coordinates of the figure $B_{figure}$ intersect the table crop $B_{table}$, its relative localized coordinates $(x'_{min}, y'_{min}, x'_{max}, y'_{max})$ are derived dynamically:
+The algorithm mathematically projects the spatial constraints of any external figures $f_i$ directly onto the Table's localized sub-tensor. Hallucination zones are programmatically recognized by computing the geometric intersection coordinates between any DocLayout-YOLO proposal classified as a \texttt{Figure} and any proposal classified as a \texttt{Table} on the same page. If the absolute bounding coordinates of the figure $B_{figure}$ intersect the table crop $B_{table}$, its relative localized coordinates $(x'_{min}, y'_{min}, x'_{max}, y'_{max})$ are derived dynamically using offset subtraction mapping against the Table's coordinate origin:
 
 \begin{equation}
 \begin{split}
-x'_{min} = \max(0, B_{figure}.x_{min} - B_{table}.x_{min}) \\
-y'_{min} = \max(0, B_{figure}.y_{min} - B_{table}.y_{min})
+x'_{min} &= \max(0, B_{figure}.x_{min} - B_{table}.x_{min}) \\
+y'_{min} &= \max(0, B_{figure}.y_{min} - B_{table}.y_{min}) \\
+x'_{max} &= \min(B_{table}.x_{max} - B_{table}.x_{min}, B_{figure}.x_{max} - B_{table}.x_{min}) \\
+y'_{max} &= \min(B_{table}.y_{max} - B_{table}.y_{min}, B_{figure}.y_{max} - B_{table}.y_{min})
 \end{split}
 \end{equation}
 
@@ -67,7 +69,7 @@ y'_{min} = \max(0, B_{figure}.y_{min} - B_{table}.y_{min})
 \end{figure}
 
 \subsection{Maximum-Intensity Tensor Obscuration}
-Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Utilizing optimized OpenCV \cite{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$. 
+Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Literally translated, the algorithm completely wipes out all visual traces of the embedded figure from the table's image patch. Utilizing optimized OpenCV \cite{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$, corresponding to true, opaque white in the RGB color space. 
 
 For every sub-pixel coordinate $(x, y)$ residing within the calculated boundaries of the diagram, the original tensor intensity $T[x,y]$ is mathematically altered to true-white:
 
@@ -132,7 +134,23 @@ In the second pass, the pipeline executes a distance-weighted linking algorithm 
 \subsection{Pass 3: Cross-Reference Resolution and Breadcrumbs}
 The final pass implements the \textit{Breadcrumb System}. As the graph builder traverses the hierarchical tree, it identifies \texttt{Heading} and \texttt{Title} nodes. The text content of these headers is recursively propagated down to all "descendant" nodes (text paragraphs and tables) until the next header of equal or higher rank is encountered. 
 
-This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). 
+This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). To concretely illustrate this hierarchical structure, a resulting node generated dynamically by the HKG engine is serialized into strict JSON as follows:
+
+\begin{verbatim}
+{
+  "node_id": "Table_Complex_1",
+  "type": "Table",
+  "content": { ... Markdown payload ... },
+  "metadata": {
+    "bbox": [120.5, 450.2, 600.0, 800.8],
+    "page_num": 14
+  },
+  "edges": [
+    {"target": "Caption_12", "relation": "CAPTIONS_FOR"}
+  ],
+  "breadcrumbs": ["Section 4: Technical Specs", "Operating Parameters"]
+}
+\end{verbatim}
 
 \section{Graph-Native Markdown Ingestion}
 \label{sec:markdown_assembly}

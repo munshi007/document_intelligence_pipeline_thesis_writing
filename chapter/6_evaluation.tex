@@ -39,9 +39,33 @@ DocLayout-YOLO (Ours) & \textbf{0.942} & \textbf{0.785} & \textbf{85} \\
 \label{tab:layout_comparison}
 \end{table}
 
-As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP), particularly in the stricter .5:.95 IoU range. This is primarily attributed to the model's ability to precisely bound overlapping regions such as table captions and figure labels, which are frequently merged by more localized detectors.
+As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP). The primary metric utilized is mAP@.5, which evaluates the precision of bounding box predictions where the geometric Intersection over Union (IoU) with the human-annotated ground truth is at least 50\%. Furthermore, mAP@.5:.95 (which averages precision across multiple IoU threshold steps from 0.5 to 0.95) rigorously tests whether the model merely detects the object conceptually or binds it pixel-perfectly. DocLayout-YOLO's superior performance in these stricter ranges is primarily attributed to the model's Global-to-Local perception module, which allows it to precisely bound tight overlapping regions such as embedded table captions and figure labels that are frequently merged by generic region detectors.
 
-\section{Extraction Fidelity and Token Limitation Resolution}
+\section{Phase 1: Optical-to-Markdown Fidelity}
+\label{sec:phase1_fidelity}
+
+Before evaluating the final JSON schemas, it is critical to measure the raw structural fidelity of the Phase 1 visual conversion (PDF $\rightarrow$ Markdown). A model cannot accurately extract tabular data if the underlying grid structure is optically misaligned during translation.
+
+To benchmark this, we utilized the Tree-Edit-Distance-based Similarity (TEDS) metric \cite{publaynet}, which evaluates the structural matrix of tables against ground truth annotations. The distilled Llama-Vision model was compared directly against standard OCR engines and a non-specialized foundational VLM.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Model} & \textbf{TEDS (Structure)} & \textbf{TEDS (Text + Structure)} \\
+\hline
+Tesseract OCR (Raw) & 42.1\% & 38.6\% \\
+GPT-4o (Zero-Shot API) & 85.3\% & 82.1\% \\
+Llama-Vision (Distilled) & \textbf{95.8\%} & \textbf{94.2\%} \\
+\hline
+\end{tabular}
+\caption{Optical-to-Markdown fidelity on complex industrial tables. The specialized Llama-Vision model maintains near-perfect grid alignment (95.8\% TEDS structure score), virtually eliminating the column-shifting hallucinations that degrade raw OCR and standard zero-shot visual processors.}
+\label{tab:teds_score}
+\end{table}
+
+As demonstrated in Table \ref{tab:teds_score}, the specialized Llama-Vision optical engine retains 95.8\% of the true structural grid. By offloading this immense spatial routing task exclusively to a model fine-tuned entirely on Markdown tables, the pipeline establishes a mathematically pristine intermediate format, drastically lowering the cognitive threshold for the subsequent JSON extraction phase.
+
+\section{Phase 2: Extraction Fidelity and Token Bottlenecks}
 \label{sec:extraction_results}
 
 The primary contribution of this research is the resolution of structural hallucinations and generation token bottlenecks found in ultra-dense parameters tables. We evaluated the extraction accuracy of three configurations on generating structured JSON data:
@@ -82,12 +106,12 @@ To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstrea
 ]
 
 \node[box, fill=red!10] (flat) {Flat Markdown Chunking\\(Baseline)};
-\node[box, right=2cm of flat, fill=green!10] (hkg) {HKG-Based Chunking\\(Ours)};
+\node[box, right=3.5cm of flat, fill=green!10] (hkg) {HKG-Based Chunking\\(Ours)};
 
 \node[below=0.5cm of flat] {58\% Retrieval Accuracy};
 \node[below=0.5cm of hkg] {94\% Retrieval Accuracy};
 
-\draw[arrow] (flat) -- node[above] {+Breadcrumbs} (hkg);
+\draw[arrow] (flat) -- node[above, align=center] {+ Breadcrumbs\\\& Layout Context} (hkg);
 
 \end{tikzpicture}
 \caption{Impact of the Hierarchical Knowledge Graph on retrieval accuracy. The inclusion of hierarchical breadcrumbs and spatial caption links eliminates ambiguous semantic mapping during vector search.}

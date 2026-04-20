@@ -8,7 +8,9 @@ The industrial sector relies extensively on visually rich documents (VRDs), such
 
 The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit severe failure states. Traditional parsing often destroys the reading order. Conversely, VLMs frequently suffer from "structural hallucination" (a phenomenon where the model misinterprets the internal axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints) or crash due to maximum token limits when attempting to process ultra-dense hardware tables.
 
-To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. This necessitates a resilient extraction pipeline capable of intelligently routing specific layout components to specialized mathematical algorithms and generative models.
+To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. While the ultimate objective of enterprise digitization is to produce structured, machine-readable JSON payloads, attempting to map raw images directly into rigid JSON schemas frequently triggers catastrophic token exhaustion in generative models. Therefore, this thesis motivates the use of dense, visually representative Markdown as a necessary Intermediate Representation (IR). By first harvesting the document into high-density Markdown, the pipeline radically reduces the token burden, decoupling visual alignment from semantic logic.
+
+Furthermore, industrial environments present unique deployment constraints. Technical datasheets frequently contain proprietary intellectual property, precluding the use of cloud-based APIs (e.g., OpenAI's GPT-4o) due to data privacy regulations. Concurrently, the domain volatility of industrial equipment means that pre-defining rigid database schemas is impossible; a dynamic schema discovery mechanism is required. This thesis, therefore, restricts its hardware footprint to the capacity of a single consumer-grade 24 GB GPU (e.g., NVIDIA RTX 3090), ensuring that the entire pipeline—from dynamic schema synthesis to dual-model reasoning—can execute entirely on secure edge servers.
 
 \section{Aim of this thesis}
 \label{sec:aim}
@@ -40,21 +42,21 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
 ]
 
 \node[box, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
-\node[box, right=1.5cm of pdf, fill=cyan!10] (layout) {DocLayout-YOLO\\\& Reading Order};
-\node[box, below=1cm of layout, fill=yellow!10] (router) {Algorithmic\\Routing Engine};
+\node[box, right=1.5cm of pdf, fill=cyan!10] (layout) {DocLayout-YOLO\\\& Reading Order\\ \textit{(Chapter 3)}};
+\node[box, below=1cm of layout, fill=yellow!10] (router) {Algorithmic\\Routing Engine\\ \textit{(Chapter 4)}};
 
-\node[box, below left=1.2cm and 0.5cm of router, fill=blue!10] (det) {Deterministic\\Analyzers};
-\node[box, below right=1.2cm and 0.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Qwen2-VL)};
+\node[box, below left=1.2cm and 0.5cm of router, fill=blue!10] (det) {Deterministic\\Analyzers\\ \textit{(Chapter 4)}};
+\node[box, below right=1.2cm and 0.5cm of router, fill=green!10] (vlm) {Two-Pass\\Markdown Harvest\\(Dual-Student)\\ \textit{(Chapter 4 \& 6)}};
 
-\node[box, below=2cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)};
-\node[box, below=1cm of qa, fill=purple!10] (hkg) {Hierarchical\\Knowledge Graph};
+\node[box, below=2.5cm of router, fill=orange!10] (qa) {QA \& Coverage\\(LangExtract)\\ \textit{(Chapter 4)}};
+\node[box, below=1cm of qa, fill=purple!10] (hkg) {Hierarchical\\Knowledge Graph\\ \textit{(Chapter 5)}};
 
 \draw[arrow] (pdf) -- (layout);
 \draw[arrow] (layout) -- (router);
-\draw[arrow] (router) -- node[left, font=\small, xshift=-0.1cm] {Ruled} (det);
-\draw[arrow] (router) -- node[right, font=\small, xshift=0.1cm] {Complex/KV} (vlm);
-\draw[arrow] (det) |- (qa);
-\draw[arrow] (vlm) |- (qa);
+\draw[arrow] (router) -- node[left, font=\small, xshift=-0.1cm, align=right] {Ruled\\(Simple Grids)} (det);
+\draw[arrow] (router) -- node[right, font=\small, xshift=0.1cm, align=left] {Complex/KV\\(Dense Geometry)} (vlm);
+\draw[arrow] (det.south) -- ++(0,-0.5) -| (qa.north);
+\draw[arrow] (vlm.south) -- ++(0,-0.5) -| (qa.north);
 \draw[arrow] (qa) -- (hkg);
 
 \end{tikzpicture}

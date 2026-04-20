@@ -37,7 +37,7 @@ Figure \ref{fig:architecture_flowchart} illustrates the massive, end-to-end data
 \draw[arrow] (pdf) -| (text);
 
 \draw[arrow] (layout) -- (xycut);
-\draw[arrow] (text) |- (font);
+\draw[arrow] (text) -- (font);
 \draw[arrow] (font) -- (xycut);
 \draw[arrow] (xycut) -- (verification);
 \draw[arrow] (images) |- (verification);
@@ -47,16 +47,46 @@ Figure \ref{fig:architecture_flowchart} illustrates the massive, end-to-end data
 \label{fig:architecture_flowchart}
 \end{figure}
 
-The document is simultaneously parsed for precise mathematical primitives (via rendering libraries) and rasterized into a high-resolution $1024 \times 1024$ pixel tensor for semantic component classification.
+The document is processed sequentially, page-by-page. For each discrete page, it is simultaneously parsed for precise mathematical primitives (via rendering libraries) and rasterized into a high-resolution padded $1024 \times 1024$ pixel tensor for semantic component classification. This isolated page-level recursive loop is essential to bound active VRAM utilization within hardware limits.
 
 \section{Layout Detection via DocLayout-YOLO}
 \label{sec:doclayout_yolo_logic}
 
 Extracting raw text from a dual-column industrial datasheet without spatial context results in a disordered jumble of parameters. To impose architectural boundaries, the pipeline utilizes \textit{DocLayout-YOLO} \cite{doclayout_yolo}, a vision-first transformer derivative specialized for document layout analysis.
 
-As described in Chapter \ref{ch:background}, DocLayout-YOLO builds upon the Detection Transformer (DETR) paradigm but incorporates structural optimizations for high-resolution document processing. The model receives a $1024 \times 1024$ input tensor and directly predicts a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$ through its multi-scale feature encoder. Each proposal is parameterized as $(x_{min}, y_{min}, x_{max}, y_{max})$.
+As described in Chapter 1, DocLayout-YOLO leverages the YOLOv10 anchor-free paradigm. The initial step is data normalization. The raw PDF page is rasterized at 300 DPI into a standard RGB image. To preserve the aspect ratio and prevent geometric distortion of embedded tables, the image is padded with uniform white space (letterboxing) to reach a perfect square configuration. This square image is then normalized into a standard $1024 \times 1024 \times 3$ input tensor.
 
-An MLP classification head assigns a category label $C_i \in \{ \text{Title, Heading, Text, Table, Figure, Caption, Footer} \}$ to each region. To resolve overlapping predictions --- a common occurrence where a generic "Figure" box might duplicate a specific "Table" box --- the pipeline applies Non-Maximum Suppression (NMS) based on Intersection over Union (IoU) scores:
+The model receives this tensor and directly predicts a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$ through its multi-scale feature encoder. Each proposal is parameterized as absolute coordinates relative to the input tensor: $(x_{min}, y_{min}, x_{max}, y_{max})$. An MLP classification head assigns a categorical probability distribution $C_i \in \{ \text{Title, Heading, Text, Table, Figure, Caption, Footer} \}$ to each proposed region.
+
+Figure \ref{fig:doclayout_data_flow} maps the explicit dimensional transformation of the input data as it passes through the DocLayout-YOLO pre-processing and inference modules.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=3cm, minimum height=1cm, rounded corners=0.1cm},
+    arrow/.style={->, thick, >=stealth}
+]
+
+\node[box, fill=gray!10] (pdf) {Raw PDF Page\\(Vector)};
+\node[box, right=1.2cm of pdf, fill=red!10] (raster) {Rasterization\\300 DPI RGB};
+\node[box, right=1.2cm of raster, fill=orange!10] (pad) {Letterbox Padding\\(Preserve Ratio)};
+\node[box, below=1cm of pad, fill=blue!10] (tensor) {Normalized Tensor\\$1024 \times 1024 \times 3$};
+\node[box, left=1.2cm of tensor, fill=cyan!10] (yolo) {DocLayout-YOLO\\Inference Phase};
+\node[box, left=1.2cm of yolo, fill=green!10] (output) {Proposal Set $B$\\$(x, y, C_i)$};
+
+\draw[arrow] (pdf) -- (raster);
+\draw[arrow] (raster) -- (pad);
+\draw[arrow] (pad) -- (tensor);
+\draw[arrow] (tensor) -- (yolo);
+\draw[arrow] (yolo) -- (output);
+
+\end{tikzpicture}
+\caption{Data Flow Diagram detailing the spatial and tensor transformations required to process an unstructured page into normalized bounding box arrays.}
+\label{fig:doclayout_data_flow}
+\end{figure}
+
+Due to its advanced dual-assignment training, DocLayout-YOLO minimizes the need for NMS (Non-Maximum Suppression). However, to resolve edge-case overlapping predictions — such as a generic "Figure" box duplicating a specific "Table" box — the pipeline applies a localized Intersection over Union (IoU) filter:
 \begin{equation}
 \text{IoU}(b_a, b_b) = \frac{\text{Area}(b_a \cap b_b)}{\text{Area}(b_a \cup b_b)}
 \end{equation}
@@ -67,7 +97,7 @@ An MLP classification head assigns a category label $C_i \in \{ \text{Title, Hea
 While visual layout models are effective for geometric boundaries, they often struggle with fine-grained semantic distinctions, such as separating a bold paragraph from a section heading. The pipeline addresses this by parallelizing detection with native PDF primitive extraction using \textit{pdfplumber}.
 
 \subsection{FontAnalyzer and Stylesheet Hypotheses}
-For each detected text region, the \textit{FontAnalyzer} component mathematically extracts the dominant "font signature" --- comprising the exact font name, absolute string size, boldness encoding, and RGB color values \cite{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \cite{pydantic}. 
+While `pdfplumber` acts as the low-level data extraction mechanism providing raw character matrices, the pipeline employs a distinct, custom \textit{FontAnalyzer} algorithm to make structural sense of that data. For each detected text region localized by the visual backbone, the FontAnalyzer mathematically iterates over the nested `pdfplumber` character stream to extract the dominant "font signature" --- comprising the exact TrueType font name, absolute string size, boldness encoding, and RGB color values \cite{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \cite{pydantic}. 
 
 This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as generic "Text" by the visual model is automatically promoted to a structural "Heading" or "Title" if its font size exceeds 12pt and it possesses a bold weight flag, or if it consists entirely of uppercase characters within a highly specific width tolerance. This hybrid approach leverages the geometric strengths of modern vision transformers \cite{vit} while maintaining the pixel-perfect semantic precision afforded by native document metadata.
 
