@@ -33,7 +33,7 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \node[box, below=1.2cm of is_kv, fill=red!10] (tsr) {Complex TSR\\\& Masking\\(Chapter 5)};
 
 \node[box, below=1cm of vlm, fill=orange!10] (qa) {QA Layer\\(Coverage/Duplication)\\(Sec. 3.3)};
-\node[box, left=2cm of qa, fill=cyan!10] (extractor) {Extractor Agent\\(Sec. 3.4)};
+\node[box, below=1cm of qa, fill=cyan!10] (extractor) {Extractor Agent\\(Sec. 3.4)};
 
 % Connections
 \draw[arrow] (input) -- (scores);
@@ -45,7 +45,7 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \draw[arrow] (is_kv) -- node[above, font=\small] {Yes} (vlm);
 \draw[arrow] (is_kv) -- node[left, font=\small] {No} (tsr);
 
-\draw[arrow] (ruled.east) -| ++(0.5,0) |- (qa.east);
+\draw[arrow] (ruled.east) -- ++(0.8,0) |- (qa.east);
 \draw[arrow] (vlm) -- (qa);
 \draw[arrow] (qa) -- (extractor);
 
