@@ -41,8 +41,8 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
     arrow/.style={->, thick, >=stealth}
 ]
 
-\node[box, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
-\node[box, right=2cm of pdf, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Section 3.2)}};
+\node[box, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Section 3.2)}};
+\node[box, left=2cm of layout, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
 \node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Section 4.1)}};
 
 \node[box, below left=1.5cm and 0.5cm of router, fill=blue!10] (det) {\textbf{Deterministic Analyzers} \\ Grid Extractor \\ \textit{(Section 4.2)}};
