@@ -8,7 +8,7 @@ This chapter details the architecture of the Algorithmic Routing Engine develope
 \section{The Algorithmic Router}
 \label{sec:router_logic}
 
-Industrial tables generally manifest in three structural configurations: Ruled grids (explicitly boxed matrices), Key-Value pairs (implicit 2-column alignments), and Complex grids (multi-lane tables often embedding external graphical structures). Applying a massive generative Vision-Language Model to a perfectly ruled 50-row table incurs unacceptable latency and massive hallucination risk. To understand this risk, it is necessary to distinguish between encoder-only models (like LayoutLM \cite{layoutlmv3}, which excel at discrete token classification) and decoder-only autoregressive models (like Qwen2.5-VL or Llama-Vision). Decoder models generate text sequentially; applying a decoder-only model to process a massive, perfectly structured 50-row visual table forces it to autoregressively "guess" the alignment across thousands of tokens, which directly instigates cross-row hallucination. Conversely, applying an implicit spatial algorithm to a 3-lane technical table fails catastrophically due to the lack of explicit boundaries.
+Industrial tables generally manifest in three structural configurations: Ruled grids (explicitly boxed matrices), Key-Value pairs (implicit 2-column alignments), and Complex grids (multi-lane tables often embedding external graphical structures). Applying a massive generative Vision-Language Model to a perfectly ruled 50-row table incurs unacceptable latency and massive hallucination risk. To understand this risk, it is necessary to distinguish between encoder-only models (like LayoutLM \citep{layoutlmv3}, which excel at discrete token classification) and decoder-only autoregressive models (like Qwen2.5-VL or Llama-Vision). Decoder models generate text sequentially; applying a decoder-only model to process a massive, perfectly structured 50-row visual table forces it to autoregressively "guess" the alignment across thousands of tokens, which directly instigates cross-row hallucination. Conversely, applying an implicit spatial algorithm to a 3-lane technical table fails catastrophically due to the lack of explicit boundaries.
 
 To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter}, computes mathematical heuristics based on the native topological primitives (words and drawing vectors) residing within a defined geometric bounding box. The orchestrator generates two primary continuous values: $S_{\text{ruled}}$ and $S_{\text{kv}}$.
 
@@ -49,7 +49,7 @@ To resolve this, an internal sorting orchestrator, the \textit{TableTypeRouter},
 \draw[arrow] (vlm) -- (qa);
 \draw[arrow] (qa) -- (extractor);
 
-\draw[arrow] (qa.south) |- ++(0,-0.5) -| ([xshift=-2.5cm]scores.west) |- node[near start, left, font=\small] {Fail $\rightarrow$ Retry} (scores.west);
+\draw[arrow] (qa.south) |- ++(0,-0.5) -| ([xshift=-2.5cm]scores.west) |- node[near start, left, font=\small, fill=white, inner sep=2pt] {Fail $\rightarrow$ Retry} (scores.west);
 
 \end{tikzpicture}
 \caption{The hierarchical routing and verification loop. Tables are routed based on geometric scores; the extraction is subsequently validated by a QA layer that can trigger fallback attempts.}
@@ -79,7 +79,7 @@ The balance factor, $B_{factor}$, calculates the symmetric distribution of text 
 \section{Two-Pass Markdown Harvest and Refinement}
 \label{sec:vlm_specialist}
 
-When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor \cite{gpt4v, qwen25}. Unlike general-purpose chat models, the extractor used in this pipeline employs a strict Two-Pass strategy to circumvent hardware constraints and token output bottlenecks.
+When the router encounters a structure that requires generative reasoning ($S_{\text{kv}} > K_{threshold}$), the region is passed to a Vision-Language Extractor \citep{gpt4v, qwen25}. Unlike general-purpose chat models, the extractor used in this pipeline employs a strict Two-Pass strategy to circumvent hardware constraints and token output bottlenecks.
 
 \subsection{Pass 1: High-Density Markdown Generation}
 To mathematically force deterministic grid generation without JSON hallucination loops or truncation, the Local VLM Specialist (Qwen2-VL) is prompted to digest the visual grid strictly into continuous Markdown tables. Because Markdown avoids the deep nesting overhead of JSON (braces, brackets, structural keys), it exhibits approximately 300\% greater token efficiency. This ensures that ultra-dense parameter catalogs can be extracted in a single generation window without triggering CUDA out-of-memory errors on consumer GPUs.
@@ -94,7 +94,7 @@ This behavior is enforced via strict \textbf{Temperature Bounds}. In autoregress
 Furthermore, dynamic \textbf{Few-Shot Demonstration} blocks are injected dynamically depending on the TableTypeRouter's geometric classification. If the table is classified as Key-Value ($S_{kv} > 0.8$), a perfectly formatted target representation is provided dynamically within the prompt context window. The combination of an extremely low temperature scalar and deterministic prompt constraints functionally transforms the Generative VLM into a rigid, non-creative OCR array decoder.
 
 \subsection{Pass 2: Text-to-Schema Refinement}
-Once the raw Markdown buffer is harvested, a secondary text-only refinement pass maps the tabular data definitively to the final Pydantic JSON schemas \cite{pydantic}. This pass acts as a structural validator, systematically isolating identity metadata (e.g., Article Number, Manufacturer) from the deep technical specifications, yielding a perfect programmatic mapping that is immune to multi-modal geometric hallucinations.
+Once the raw Markdown buffer is harvested, a secondary text-only refinement pass maps the tabular data definitively to the final Pydantic JSON schemas \citep{pydantic}. This pass acts as a structural validator, systematically isolating identity metadata (e.g., Article Number, Manufacturer) from the deep technical specifications, yielding a perfect programmatic mapping that is immune to multi-modal geometric hallucinations.
 
 \section{Extraction Quality Assurance and Adaptive Retry}
 \label{sec:qa_layer}
@@ -102,7 +102,7 @@ Once the raw Markdown buffer is harvested, a secondary text-only refinement pass
 A significant contribution of this architecture is the secondary verification layer that follows every extraction attempt. Rather than assuming the first extraction is correct, the \textit{QA Coordinator} evaluates two precision metrics: \textbf{Coverage} and \textbf{Duplication}.
 
 \subsection{Coverage and Duplication Metrics}
-The coverage metric measures the ratio of source text tokens successfully mapped into the resulting structure, drawing heavily on the precise source grounding principles of the LangExtract library \cite{langextract}. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure because the spatial coordinates of the tokens do not trace back to the structured output.
+The coverage metric measures the ratio of source text tokens successfully mapped into the resulting structure, drawing heavily on the precise source grounding principles of the LangExtract library \citep{langextract}. If a table contains forty numeric parameters but the VLM only extracts ten, the low coverage score triggers an automated failure because the spatial coordinates of the tokens do not trace back to the structured output.
 
 Conversely, the duplication metric detects instances where the model "stutters" or recursively generates the same row multiple times --- a common failure mode in sequence-to-sequence document models. Let $E$ be the set of extracted records. The duplication score $S_{dup}$ is defined as the frequency of redundant entries normalized by the total count. If $S_{dup} > 0.05$ or Coverage $< 0.90$, the extraction is rejected.
 
@@ -120,14 +120,14 @@ To surgically mitigate this hallucination loop, the "Markdown Harvest" strategy 
 The ultimate objective of the Document Intelligence Pipeline is not simply to produce flattened Markdown, but to populate deterministic, highly-structured database records. This requirement is fulfilled by the final autonomous component in the pipeline: the \textit{ExtractorAgent}.
 
 \subsection{Pydantic Schema Instantiation via Discovery Agent}
-Once the two-pass routing engine resolves complex tables and the Hierarchical Knowledge Graph provides the semantic grouping (see Chapter \ref{ch:graph_masking}), the resulting multi-modal batches are mapped against strict, strongly-typed object schemas. This thesis implements these mappings using the Pydantic \cite{pydantic} framework. 
+Once the two-pass routing engine resolves complex tables and the Hierarchical Knowledge Graph provides the semantic grouping (see Chapter \ref{ch:graph_masking}), the resulting multi-modal batches are mapped against strict, strongly-typed object schemas. This thesis implements these mappings using the Pydantic \citep{pydantic} framework. 
 
 Crucially, the exact combination of expected data blocks (e.g. \textit{invoice\_header}, \textit{parameters}, \textit{connectors}) is not hard-coded. Instead, a preliminary \textit{DiscoveryAgent} scans a textual preview of the document. By determining the domain (e.g., Industrial vs. Corporate) and synthesizing contextual hints, the pipeline dynamically constructs a unified model at runtime utilizing Python's \texttt{create\_model} constructor. Pydantic is a powerful data validation framework that forces Python dictionaries to strictly adhere to defined typings (e.g., ensuring a "Voltage" field only accepts floating-point numbers). The DiscoveryAgent effectively acts as a programmatic compiler, analyzing the unstructured headers and passing an array of expected string and float \texttt{kwargs} directly into the Pydantic \texttt{create\_model} function, synthesizing a rigid target object schema dynamically out of thin air.
 
 \subsection{LangExtract AST Analysis and Runtime Construction}
 \label{subsec:langextract_ast}
 
-The process of binding the unified string arrays to the dynamic Pydantic blueprint relies fundamentally on the internal architecture of the \texttt{LangExtract} \cite{langextract} library. Unlike archaic string-matching parsers, \texttt{LangExtract} operates on a programmatic level. When the Discovery Agent concludes the schema configuration, the pipeline passes the definitions through an Abstract Syntax Tree (AST) analyzer. This parser reads the dictionary schema structures and procedurally transpiles them into a native Python class definition stored internally in system memory.
+The process of binding the unified string arrays to the dynamic Pydantic blueprint relies fundamentally on the internal architecture of the \texttt{LangExtract} \citep{langextract} library. Unlike archaic string-matching parsers, \texttt{LangExtract} operates on a programmatic level. When the Discovery Agent concludes the schema configuration, the pipeline passes the definitions through an Abstract Syntax Tree (AST) analyzer. This parser reads the dictionary schema structures and procedurally transpiles them into a native Python class definition stored internally in system memory.
 
 The AST runtime generation has severe operational benefits. By transforming dynamic JSON schemas into inherently typed logical expressions (e.g. mapping an arbitrary field \texttt{Max\_Current} strictly to a built-in \texttt{float} primitive representing Amperage), \texttt{LangExtract} inherently attaches recursive tracebacks. When the secondary extraction VLM is prompted with this generated AST blueprint, any syntax deviations triggering a validation failure immediately isolate the precise geometric row and token fault. This ensures deterministic rollback capabilities. Without runtime AST construction, the engine would be forced to execute brittle regular expressions to validate JSON outputs, drastically slowing the multi-stage extraction pipeline and crippling verification precision.
 

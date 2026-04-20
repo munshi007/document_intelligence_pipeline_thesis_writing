@@ -16,7 +16,7 @@ The following key technical contributions were established:
     
     \item \textbf{Hierarchical Knowledge Graphs (HKG):} The 3-pass HKG construction algorithm preserves the semantic and topological "connective tissue" of the document. The resulting representation, enriched with hierarchical breadcrumbs and spatial links, provides unambiguous semantic provenance for downstream Retrieval-Augmented Generation (RAG) applications.
     
-    \item \textbf{Knowledge Distillation for Edge Architecture:} Through the application of LoRA \cite{lora} and the Unsloth framework \cite{unsloth}, the visual reasoning capabilities required for structural mapping were successfully distilled from a GPT-4o \cite{gpt4v} teacher directly into the Qwen2-VL architecture. This enables the high-performance 'Two-Pass Markdown Harvest' inference on consumer-grade hardware (RTX 3090), facilitating local deployment in secure enterprise environments without token ceiling bottlenecks.
+    \item \textbf{Knowledge Distillation for Edge Architecture:} Through the application of LoRA \citep{lora} and the Unsloth framework \citep{unsloth}, the visual reasoning capabilities required for structural mapping were successfully distilled from a GPT-4o \citep{gpt4v} teacher directly into the Qwen2-VL architecture. This enables the high-performance 'Two-Pass Markdown Harvest' inference on consumer-grade hardware (RTX 3090), facilitating local deployment in secure enterprise environments without token ceiling bottlenecks.
     
     \item \textbf{DiscoveryAgent and Dynamic Schema Synthesis:} Rather than relying on hard-coded JSON routing bounds, the thesis introduces a domain-scouting `DiscoveryAgent`. This system dynamically compiles strict Pydantic parsing schemas at runtime based on preliminary document text, providing highly flexible extraction without sacrificing programmatic rigor.
 \end{itemize}
@@ -27,7 +27,7 @@ The following key technical contributions were established:
 While the current pipeline addresses the foundational challenges of industrial document intelligence, several future directions offer substantial potential for further improvement:
 
 \subsection{Distillation of Massive Scale Models}
-While the current framework robustly utilizes the optimized Qwen2.5-VL \cite{qwen25} parameters at the edge, scaling the distillation framework to massive capacity models (e.g., 72B parameter architectures) when localized VRAM bounds expand offers immense promise. Preliminary experiments suggest that scaling the inherent parameter density proportionally enhances visual patch resolution limit comprehension for extremely dense engineering matrices.
+While the current framework robustly utilizes the optimized Qwen2.5-VL \citep{qwen25} parameters at the edge, scaling the distillation framework to massive capacity models (e.g., 72B parameter architectures) when localized VRAM bounds expand offers immense promise. Preliminary experiments suggest that scaling the inherent parameter density proportionally enhances visual patch resolution limit comprehension for extremely dense engineering matrices.
 
 \subsection{Adaptive Resolution and 4K Vision Encoders}
 Industrial schematics often contain fine-grained textual annotations that are lost at the standard $1024 \times 1024$ input resolution. Future iterations of the pipeline could implement an "adaptive resolution" layer that detects high-density regions and re-processes them through secondary, higher-resolution visual encoders (e.g., InternVL-2.5) to capture molecular-level details in engineering drawings.

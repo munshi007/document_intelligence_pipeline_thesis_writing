@@ -8,7 +8,7 @@ This chapter details these layers, describing how the pipeline moves beyond layo
 \section{The Core Visual Hallucination Paradigm}
 \label{sec:hallucination_paradigm}
 
-The Table Transformer (TATR) utilizes a Detection Transformer (DETR) architecture rigorously pre-trained on grid structures to decode exact row and column bounding vectors directly from image convolutions \cite{tatr}. The model does not explicitly read text; instead, it predicts structural intersections by observing physical grid lines and implicit alignment whitespace.
+The Table Transformer (TATR) utilizes a Detection Transformer (DETR) architecture rigorously pre-trained on grid structures to decode exact row and column bounding vectors directly from image convolutions \citep{tatr}. The model does not explicitly read text; instead, it predicts structural intersections by observing physical grid lines and implicit alignment whitespace.
 
 However, the purely visual mechanism driving TATR's success triggers catastrophic failure when processing multi-modal industrial datasheets. Consider an electrical specification table wherein the third column dynamically embeds a raster image of a wiring schematic. The schematic inherently contains thousands of high-contrast, linear graphic vectors representing wires, circuit terminals, and Cartesian testing boundaries.
 
@@ -69,7 +69,7 @@ y'_{max} &= \min(B_{table}.y_{max} - B_{table}.y_{min}, B_{figure}.y_{max} - B_{
 \end{figure}
 
 \subsection{Maximum-Intensity Tensor Obscuration}
-Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Literally translated, the algorithm completely wipes out all visual traces of the embedded figure from the table's image patch. Utilizing optimized OpenCV \cite{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$, corresponding to true, opaque white in the RGB color space. 
+Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Literally translated, the algorithm completely wipes out all visual traces of the embedded figure from the table's image patch. Utilizing optimized OpenCV \citep{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$, corresponding to true, opaque white in the RGB color space. 
 
 For every sub-pixel coordinate $(x, y)$ residing within the calculated boundaries of the diagram, the original tensor intensity $T[x,y]$ is mathematically altered to true-white:
 

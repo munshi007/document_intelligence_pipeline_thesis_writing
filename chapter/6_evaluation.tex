@@ -12,7 +12,7 @@ The evaluation utilizes a curated dataset of 250 industrial engineering datashee
 Ground truth for extraction was established through manual annotation and subsequent verification by a senior domain expert. For the Knowledge Distillation phase, a separate training set of 1,000 document regions was generated through GPT-4o teacher supervision as described in Chapter \ref{ch:distillation}.
 
 \subsection{Hardware Configuration}
-All local inference tasks, including DocLayout-YOLO \cite{doclayout_yolo} detection, Qwen2-VL \cite{qwen25} foundational extraction, and the Two-Pass Markdown Harvest pipeline, were executed on a single workstation equipped with:
+All local inference tasks, including DocLayout-YOLO \citep{doclayout_yolo} detection, Qwen2-VL \citep{qwen25} foundational extraction, and the Two-Pass Markdown Harvest pipeline, were executed on a single workstation equipped with:
 \begin{itemize}
     \item \textbf{GPU:} NVIDIA GeForce RTX 3090 (24 GB VRAM)
     \item \textbf{CPU:} AMD Ryzen 9 5950X
@@ -23,7 +23,7 @@ Comparative API baselines were executed using standard cloud-based unstructured 
 \section{Layout Detection Performance}
 \label{sec:layout_results}
 
-The DocLayout-YOLO backbone was evaluated against the general-purpose LayoutLMv3 \cite{layoutlmv3} baseline for region classification and bounding box precision. 
+The DocLayout-YOLO backbone was evaluated against the general-purpose LayoutLMv3 \citep{layoutlmv3} baseline for region classification and bounding box precision. 
 
 \begin{table}[htbp]
 \centering
@@ -46,7 +46,7 @@ As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a sig
 
 Before evaluating the final JSON schemas, it is critical to measure the raw structural fidelity of the Phase 1 visual conversion (PDF $\rightarrow$ Markdown). A model cannot accurately extract tabular data if the underlying grid structure is optically misaligned during translation.
 
-To benchmark this, we utilized the Tree-Edit-Distance-based Similarity (TEDS) metric \cite{publaynet}, which evaluates the structural matrix of tables against ground truth annotations. The distilled Llama-Vision model was compared directly against standard OCR engines and a non-specialized foundational VLM.
+To benchmark this, we utilized the Tree-Edit-Distance-based Similarity (TEDS) metric \citep{publaynet}, which evaluates the structural matrix of tables against ground truth annotations. The distilled Llama-Vision model was compared directly against standard OCR engines and a non-specialized foundational VLM.
 
 \begin{table}[htbp]
 \centering
@@ -96,7 +96,7 @@ The results in Table \ref{tab:extraction_fidelity} highlight the substantial imp
 \section{Knowledge Graph and Retrieval Quality}
 \label{sec:hkg_results}
 
-To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstream RAG applications \cite{rag_lewis}, we measured retrieval precision for "context-dependent" queries (e.g., "What is the supply voltage for the sensor defined in Section 4.2?").
+To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstream RAG applications \citep{rag_lewis}, we measured retrieval precision for "context-dependent" queries (e.g., "What is the supply voltage for the sensor defined in Section 4.2?").
 
 \begin{figure}[htbp]
 \centering

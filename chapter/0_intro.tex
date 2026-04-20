@@ -42,21 +42,21 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
 ]
 
 \node[box, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
-\node[box, right=2cm of pdf, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Chapter 3)}};
-\node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Chapter 4)}};
+\node[box, right=2cm of pdf, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Section 3.2)}};
+\node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Section 4.1)}};
 
-\node[box, below left=1.5cm and 0.5cm of router, fill=blue!10] (det) {\textbf{Deterministic Analyzers} \\ Grid Extractor \\ \textit{(Chapter 4)}};
-\node[box, below right=1.5cm and 0.5cm of router, fill=green!10] (vlm) {\textbf{Two-Pass Markdown Harvest} \\ Dual-Student Extractors \\ \textit{(Chapter 4 \& 6)}};
+\node[box, below left=1.5cm and 0.5cm of router, fill=blue!10] (det) {\textbf{Deterministic Analyzers} \\ Grid Extractor \\ \textit{(Section 4.2)}};
+\node[box, below right=1.5cm and 0.5cm of router, fill=green!10] (vlm) {\textbf{Two-Pass Markdown Harvest} \\ Dual-Student Extractors \\ \textit{(Section 4.3 \& Chapter 6)}};
 
-\node[box, below=4cm of router, fill=orange!10] (qa) {\textbf{QA \& Coverage Layer} \\ LangExtract AST Validation \\ \textit{(Chapter 4)}};
+\node[box, below=4cm of router, fill=orange!10] (qa) {\textbf{QA \& Coverage Layer} \\ LangExtract AST Validation \\ \textit{(Section 4.4)}};
 \node[box, below=1.5cm of qa, fill=purple!10] (hkg) {\textbf{Hierarchical Knowledge Graph} \\ Serialized IR Generation \\ \textit{(Chapter 5)}};
 
 \draw[arrow] (pdf) -- (layout);
 \draw[arrow] (layout) -- (router);
 \draw[arrow] (router) -| node[above, align=center, xshift=-1cm] {Ruled\\(Simple Grids)} (det);
 \draw[arrow] (router) -| node[above, align=center, xshift=1cm] {Complex/KV\\(Dense Geometry)} (vlm);
-\draw[arrow] (det) |- (qa);
-\draw[arrow] (vlm) |- (qa);
+\draw[arrow] (det.south) |- (qa.west);
+\draw[arrow] (vlm.south) |- (qa.east);
 \draw[arrow] (qa) -- (hkg);
 
 \end{tikzpicture}
