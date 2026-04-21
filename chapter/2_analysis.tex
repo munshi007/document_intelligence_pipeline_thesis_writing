@@ -97,7 +97,7 @@ Figure \ref{fig:doclayout_data_flow} maps the explicit dimensional transformatio
 \label{fig:doclayout_data_flow}
 \end{figure}
 
-Due to its advanced dual-assignment training, DocLayout-YOLO minimizes the need for NMS (Non-Maximum Suppression). However, to resolve edge-case overlapping predictions — such as a generic "Figure" box duplicating a specific "Table" box — the pipeline applies a localized Intersection over Union (IoU) filter:
+Due to its advanced dual-assignment training, DocLayout-YOLO minimizes the need for NMS (Non-Maximum Suppression). However, to resolve edge-case overlapping predictions (such as a generic "Figure" box duplicating a specific "Table" box), the pipeline applies a localized Intersection over Union (IoU) filter:
 \begin{equation}
 \text{IoU}(b_a, b_b) = \frac{\text{Area}(b_a \cap b_b)}{\text{Area}(b_a \cup b_b)}
 \end{equation}
@@ -108,7 +108,7 @@ Due to its advanced dual-assignment training, DocLayout-YOLO minimizes the need 
 While visual layout models are effective for geometric boundaries, they often struggle with fine-grained semantic distinctions, such as separating a bold paragraph from a section heading. The pipeline addresses this by parallelizing detection with native PDF primitive extraction using \textit{pdfplumber}.
 
 \subsection{FontAnalyzer and Stylesheet Hypotheses}
-While `pdfplumber` acts as the low-level data extraction mechanism providing raw character matrices, the pipeline employs a distinct, custom \textit{FontAnalyzer} algorithm to make structural sense of that data. For each detected text region localized by the visual backbone, the FontAnalyzer mathematically iterates over the nested `pdfplumber` character stream to extract the dominant "font signature" --- comprising the exact TrueType font name, absolute string size, boldness encoding, and RGB color values \citep{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \citep{pydantic}. 
+While `pdfplumber` acts as the low-level data extraction mechanism providing raw character matrices, the pipeline employs a distinct, custom \textit{FontAnalyzer} algorithm to make structural sense of that data. For each detected text region localized by the visual backbone, the FontAnalyzer mathematically iterates over the nested `pdfplumber` character stream to extract the dominant "font signature," comprising the exact TrueType font name, absolute string size, boldness encoding, and RGB color values \citep{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \citep{pydantic}. 
 
 This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as generic "Text" by the visual model is automatically promoted to a structural "Heading" or "Title" if its font size exceeds 12pt and it possesses a bold weight flag, or if it consists entirely of uppercase characters within a highly specific width tolerance. This hybrid approach leverages the geometric strengths of modern vision transformers \citep{vit} while maintaining the pixel-perfect semantic precision afforded by native document metadata.
 

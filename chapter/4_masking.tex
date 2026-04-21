@@ -1,7 +1,7 @@
 \chapter{Semantic Context and Hierarchical Knowledge Graphs}
 \label{ch:graph_masking}
 
-Translating an industrial Visually Rich Document (VRD) into a flat text stream destroys the multi-modal relationships that define its meaning --- the link between a table and its caption, or a specification and its parent section header. To preserve this semantic integrity, the pipeline implements two advanced structural layers: a \textit{Semantic Pre-Masking} algorithm to resolve table hallucinations, and a \textit{Hierarchical Knowledge Graph} (HKG) that encodes the document's topological and semantic provenance.
+Translating an industrial Visually Rich Document (VRD) into a flat text stream destroys the multi-modal relationships that define its meaning, such as the link between a table and its caption or a specification and its parent section header. To preserve this semantic integrity, the pipeline implements two advanced structural layers: a \textit{Semantic Pre-Masking} algorithm to resolve table hallucinations, and a \textit{Hierarchical Knowledge Graph} (HKG) that encodes the document's topological and semantic provenance.
 
 This chapter details these layers, describing how the pipeline moves beyond layout detection to construct a graph-native representation suitable for high-precision Retrieval-Augmented Generation (RAG).
 
@@ -17,7 +17,7 @@ WhenTATR executes inference over the parent table bounding box, its convolutiona
 \section{The Semantic Pre-Masking Algorithm}
 \label{sec:pre_masking_logic}
 
-To permanently circumvent generative visual hallucination, this thesis engineers an absolute \textit{Semantic Pre-Masking} algorithm—"absolute" indicating that the intervention performs destructive, irreversible optical redaction on the tensor prior to inference. The fundamental logic dictates that if a visual model hallucinates false rows when observing complex schematics, the mathematical tensor underlying those schematics must be erased from the observation prior to inference execution.
+To permanently circumvent generative visual hallucination, this thesis engineers an absolute \textit{Semantic Pre-Masking} algorithm (where "absolute" indicates that the intervention performs destructive, irreversible optical redaction on the tensor prior to inference). The fundamental logic dictates that if a visual model hallucinates false rows when observing complex schematics, the mathematical tensor underlying those schematics must be erased from the observation prior to inference execution.
 
 Instead of relying on fragile Large Language Model (LLM) instruction tuning to "ignore the graph", the intervention is purely geometrical and localized directly on the raw image array.
 

@@ -108,7 +108,7 @@ This degradation manifests uniquely as "structural hallucination." Because the d
 
 The Table Transformer (TATR) \citep{tatr}, introduced by Smock et al., applies the DETR detection paradigm to the internal structure of a table crop. It predicts coordinate matrices for rows, columns, and spanning cells directly from the isolated image region, achieving high accuracy on clean, well-separated grids.
 
-However, TATR exhibits a specific failure mode that is particularly prevalent in industrial datasheets: when the table region contains an embedded engineering schematic --- a wiring diagram, a Cartesian timing plot, or a dimensional drawing --- the dense internal line structure of that graphic is interpreted by TATR as table grid lines, causing it to hallucinate rows and columns within the schematic. This phenomenon and the engineering solution developed to address it are described in detail in Chapter~\ref{ch:graph_masking}.
+However, TATR exhibits a specific failure mode that is particularly prevalent in industrial datasheets: when the table region contains an embedded engineering schematic (such as a wiring diagram, a Cartesian timing plot, or a dimensional drawing), the dense internal line structure of that graphic is interpreted by TATR as table grid lines, causing it to hallucinate rows and columns within the schematic. This phenomenon and the engineering solution developed to address it are described in detail in Chapter~\ref{ch:graph_masking}.
 
 \section{Vision-Language Models}
 \label{sec:vlms}
@@ -168,7 +168,7 @@ By constraining the rank, for instance $r = 16$ as used in this work, the number
 \section{Retrieval-Augmented Generation}
 \label{sec:rag}
 
-The structured Markdown and graph output produced by this pipeline are intended for downstream consumption by a Retrieval-Augmented Generation (RAG) system \citep{rag_lewis}. In the RAG paradigm, a language model answers queries by first retrieving relevant passages from an indexed document corpus, then conditioning its generation on those passages. The quality of the retrieval step --- and therefore the quality of the generated answers --- depends critically on how accurately the document corpus has been chunked and indexed.
+The structured Markdown and graph output produced by this pipeline are intended for downstream consumption by a Retrieval-Augmented Generation (RAG) system \citep{rag_lewis}. In the RAG paradigm, a language model answers queries by first retrieving relevant passages from an indexed document corpus, then conditioning its generation on those passages. The quality of the retrieval step, and therefore the quality of the generated answers, depends critically on how accurately the document corpus has been chunked and indexed.
 
 A flat OCR transcript of an industrial datasheet, with destroyed reading order and collapsed tables, produces low-quality retrieval chunks that cause the downstream model to hallucinate specifications or misattribute parameters to the wrong product. By contrast, the Hierarchical Knowledge Graph (HKG) produced by this pipeline preserves section context, maintains table integrity, and resolves cross-references, yielding retrieval chunks that carry unambiguous semantic provenance. This is the principal motivation for the graph-native representation that will be comprehensively detailed in Chapter 5.
 
