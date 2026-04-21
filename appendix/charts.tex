@@ -61,3 +61,42 @@ To functionally validate the performance of DocLayout-YOLO against highly dense,
 \caption{Visual layout detection (After): Corresponding DocLayout-YOLO prediction tensors encapsulating the regions.}
 \label{fig:app_bbox_after}
 \end{figure}
+
+\section{Visual Case Study: Mitigating Structural Hallucination}
+This section contrasts the extraction outputs of a complex engineering schematic with and without the pipeline's Semantic Pre-Masking defense (detailed in Chapter \ref{ch:graph_masking}).
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.48\textwidth}
+\centering
+\framebox{\parbox{0.9\textwidth}{\centering \vspace{1cm} \textbf{Baseline VLM Output}\\(No Masking)\vspace{1cm} \\ \footnotesize
+\texttt{Row 1: | Signal | 1 |}\\
+\texttt{Row 2: | 24V DC | 2 |}\\
+\texttt{Row 3: | - - - | - |}\\
+\texttt{Row 4: | - \textbackslash / - | 3 |}\\
+\texttt{Row 5: | | 4 |}\\
+\textit{[... 100+ hallucinated rows generated from wiring diagram lines ...]}
+\vspace{1cm}
+}}
+\caption{The model erroneously registers internal schematic wires as table row delineators, causing infinite loop text generation.}
+\label{fig:hallucination_example}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\framebox{\parbox{0.9\textwidth}{\centering \vspace{1cm} \textbf{Pipeline Output}\\(Pre-Masking + DiscoveryAgent)\vspace{1cm} \\ \footnotesize
+\raggedright
+\texttt{\{}\\
+\texttt{~~"connector\_type": "M12 male",}\\
+\texttt{~~"pinout": [}\\
+\texttt{~~~~\{"pin": 1, "signal": "VCC"\},}\\
+\texttt{~~~~\{"pin": 2, "signal": "Data+"\},}\\
+\texttt{~~~~\{"pin": 3, "signal": "GND"\},}\\
+\texttt{~~~~\{"pin": 4, "signal": "Data-"\}}\\
+\texttt{~~]}\\
+\texttt{\}}\\
+\vspace{1.5cm}
+}}
+\caption{With the internal graph masked, the extracted JSON adheres perfectly to the Pydantic schema without dropping into hallucination loops.}
+\label{fig:masked_extraction}
+\end{minipage}
+\end{figure}

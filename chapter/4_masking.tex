@@ -88,6 +88,26 @@ When the obscured tensor $T_{crop}'$ is evaluated dynamically by TATR, the model
 
 This highly localized engineering solution definitively eliminates topological table hallucination entirely independent of unreliable LLM prompting. Conclusively, it enables the integration of state-of-the-art TSR grid mapping for industrial documents, populating structurally verified topological trees directly into the unified Markdown abstraction.
 
+\begin{algorithm}[H]
+\caption{Semantic Pre-Masking for TATR Interference}
+\label{alg:semantic_masking_logic}
+\begin{algorithmic}[1]
+\REQUIRE $T_{crop}$ (Image Tensor), $B_{table}$ (Table BBox), $F$ (List of Figure BBoxes)
+\ENSURE $T_{crop}'$ (Obscured Tensor)
+\STATE $T_{crop}' \leftarrow T_{crop}$
+\FOR{\textbf{each} $B_{figure} \in F$}
+    \IF{$\text{Intersects}(B_{table}, B_{figure})$}
+        \STATE $x'_{min} \leftarrow \max(0, B_{figure}.x_{min} - B_{table}.x_{min})$
+        \STATE $y'_{min} \leftarrow \max(0, B_{figure}.y_{min} - B_{table}.y_{min})$
+        \STATE $x'_{max} \leftarrow \min(B_{table}.width, B_{figure}.x_{max} - B_{table}.x_{min})$
+        \STATE $y'_{max} \leftarrow \min(B_{table}.height, B_{figure}.y_{max} - B_{table}.y_{min})$
+        \STATE $T_{crop}'[y'_{min}:y'_{max}, x'_{min}:x'_{max}] \leftarrow (255, 255, 255)$
+    \ENDIF
+\ENDFOR
+\RETURN $T_{crop}'$
+\end{algorithmic}
+\end{algorithm}
+
 \section{The Hierarchical Knowledge Graph (HKG) Construction}
 \label{sec:hkg_logic}
 
@@ -134,7 +154,30 @@ In the second pass, the pipeline executes a distance-weighted linking algorithm 
 \subsection{Pass 3: Cross-Reference Resolution and Breadcrumbs}
 The final pass implements the \textit{Breadcrumb System}. As the graph builder traverses the hierarchical tree, it identifies \texttt{Heading} and \texttt{Title} nodes. The text content of these headers is recursively propagated down to all "descendant" nodes (text paragraphs and tables) until the next header of equal or higher rank is encountered. 
 
-This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). To concretely illustrate this hierarchical structure, a resulting node generated dynamically by the HKG engine is serialized into strict JSON as follows:
+This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). 
+
+\begin{algorithm}[H]
+\caption{HKG Breadcrumb Propagation (Pass 3)}
+\label{alg:hkg_breadcrumbs}
+\begin{algorithmic}[1]
+\REQUIRE $Nodes$ (List of topologically sorted HKG nodes)
+\ENSURE Nodes with populated {\fontfamily{qcr}\selectfont breadcrumbs} property
+\STATE $ActiveBreadcrumbs \leftarrow []$
+\FOR{\textbf{each} $n \in Nodes$}
+    \IF{$n.type \IS \text{"Heading"}$}
+        \STATE $rank \leftarrow \text{GetHeadingRank}(n)$
+        \STATE $\text{Remove}(ActiveBreadcrumbs, \text{items with rank} \ge rank)$
+        \STATE $\text{Append}(ActiveBreadcrumbs, (n.content, rank))$
+    \ELSIF{$n.type \in \{\text{"Text", "Table", "Figure"}\}$}
+        \FOR{\textbf{each} $(text, rank) \in ActiveBreadcrumbs$}
+            \STATE $\text{Append}(n.breadcrumbs, text)$
+        \ENDFOR
+    \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+To concretely illustrate this hierarchical structure, a resulting node generated dynamically by the HKG engine is serialized into strict JSON as follows:
 
 \begin{verbatim}
 {

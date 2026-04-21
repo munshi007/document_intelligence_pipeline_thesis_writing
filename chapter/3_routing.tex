@@ -76,6 +76,32 @@ S_{\text{kv}} = 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \ri
 
 The balance factor, $B_{factor}$, calculates the symmetric distribution of text nodes residing left or right of $g_{max}$. If the combined score $S_{kv} > 0.8$, it is classified as a strict key-value list. This 0.8 threshold ensures a high-confidence boundary, permitting only perfectly aligned dual-column arrays to bypass complex structural analysis. If a table yields a highly imbalanced distribution or exhibits multiple significant gaps ($n \geq 2$), the router detects a complex multi-metric grid, bypassing the VLM and forcing the table to the Semantic Pre-Masking TSR framework detailed in Chapter 5.
 
+\begin{algorithm}[H]
+\caption{Table Type Classification and Routing Engine}
+\label{alg:table_routing}
+\begin{algorithmic}[1]
+\REQUIRE $B_{table}$ (Bounding Box), $D$ (Vector lines), $X$ (Text Nodes)
+\ENSURE Routing Destination (String)
+\STATE $w \leftarrow B_{table}.width$, $h \leftarrow B_{table}.height$
+\STATE $P \leftarrow 2(w + h)$
+\STATE $S_{\text{ruled}} \leftarrow \min \left( 1.0, \frac{\sum_{d \in D} \text{length}(d)}{P} \right)$
+\IF {$S_{\text{ruled}} > 0.4$}
+    \RETURN \text{"Deterministic Grid Extractor"}
+\ENDIF
+\STATE \textbf{Compute K-V Structure:}
+\STATE $X_{sorted} \leftarrow \text{SortByXCenter}(X)$
+\STATE $G \leftarrow \text{ComputeGaps}(X_{sorted})$
+\STATE $g_{max} \leftarrow \max(G)$
+\STATE $B_{factor} \leftarrow \text{ComputeSymmetry}(X_{sorted}, g_{max})$
+\STATE $S_{\text{kv}} \leftarrow 0.7 \left( \frac{g_{max}}{w} \right) + 0.3 \left( B_{factor} \right)$
+\IF {$S_{\text{kv}} > 0.8 \AND \text{Count}(G > \text{threshold}) < 2$}
+    \RETURN \text{"VLM Two-Pass Harvest"}
+\ELSE
+    \RETURN \text{"Semantic Pre-Masking TSR"}
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
 \section{Two-Pass Markdown Harvest and Refinement}
 \label{sec:vlm_specialist}
 

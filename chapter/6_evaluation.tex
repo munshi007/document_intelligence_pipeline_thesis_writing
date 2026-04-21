@@ -147,5 +147,20 @@ Extraction Yield (TEDS) & 31.4\% & \textbf{95.1\%} \\
 
 As documented in Table \ref{tab:ablation_study}, disabling the pre-masking layer resulted in severe mode collapse for the TSR transformer. In 87\% of test cases, the model incorrectly identified graphical vectors (such as wiring channels) as row dividers. This caused an average over-segmentation hallucination of 43.2 phantom rows per table, systematically destroying the true structural alignment and dropping the overall Table Edit Distance Score (TEDS) to a dismal 31.4\%. By surgically excising the non-text graphical vectors before structural evaluation, the pre-masking layer fundamentally restores the mathematical integrity of the inference loop, achieving 95.1\% fidelity without demanding additional computational parameters.
 
+\section{Qualitative Analysis of Edge-Case Failures}
+\label{sec:qualitative_analysis}
+
+While the Two-Pass Markdown Harvest pipeline achieved a 98.5\% Parameter Recall Rate (refer to Table \ref{tab:extraction_fidelity}), evaluating the remaining 1.5\% failure margin is critical for understanding the absolute boundaries of the current architecture. A manual, qualitative review of the failed extractions revealed three primary failure archetypes:
+
+\begin{enumerate}
+    \item \textbf{Destructive Watermarks and Raster Artifacts:} In approximately 40\% of the failed cases, the underlying PDF was heavily watermarked with diagonal, high-opacity "DRAFT" or "CONFIDENTIAL" stamps. While the DocLayout-YOLO model successfully localized the table bounding box, the intermediate optical transformer (Llama-Vision) struggled to differentiate the low-contrast alphanumeric parameters from the dense watermark pixels, resulting in localized character hallucination (e.g., misreading a "0" as an "8").
+    
+    \item \textbf{90-Degree Orthogonal Schematics:} The pipeline assumes a predominantly standardized reading horizon. In specific industrial blueprints, complex parameter tables were embedded orthogonally (rotated 90 degrees) alongside vertical CAD components. While DocLayout-YOLO identified the region, the XY-Cut reading order algorithm and the baseline spatial encoding of the VLMs failed to dynamically rotate the coordinate space, causing the model to read the table "sideways" and destroying the key-value alignment.
+    
+    \item \textbf{Implicit Multi-Row Spanning Parameters:} The final failure mode involved highly complex nested headers lacking any physical delineators, where a single parameter applied implicitly across 10+ sub-rows. In these edge cases, the strict temperature limits ($T \in [0.1, 0.2]$) imposed during the Markdown Harvest to prevent hallucination conversely prevented the model from inferring the implicit hierarchical link. The model successfully extracted the data but failed to replicate the spanning relationship in the JSON schema.
+\end{enumerate}
+
+These qualitative insights directly inform the future research pathways detailed in Chapter \ref{ch:conclusion}, specifically the need for adaptive high-resolution encoders and multi-agent auditing loops.
+
 \section{Conclusion on Evaluation}
 The empirical results confirm that the proposed pipeline successfully resolves the fundamental structural challenges of industrial VRDs. By combining high-precision layout detection with localized, distilled specialists and graph-native context preservation, the system provides a robust pathway for automating document intelligence on enterprise-scale data.
