@@ -48,24 +48,25 @@ The following is an excerpt from a generated \texttt{\_graph.json} manifest repr
 \section{Bounding Box Visualizations}
 To functionally validate the performance of DocLayout-YOLO against highly dense, unstructured layouts, bounding box visualization was employed. Figures \ref{fig:app_bbox_before} and \ref{fig:app_bbox_after} demonstrate a "Before and After" state mapping abstract PDF matrices to perfectly constrained bounding parameters.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{images/Super_Complex_2.pdf}
 \caption{Visual layout detection (Before): Raw structural PDF of a dense engineering catalog.}
 \label{fig:app_bbox_before}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{images/layout_visualizations.pdf}
 \caption{Visual layout detection (After): Corresponding DocLayout-YOLO prediction tensors encapsulating the regions.}
 \label{fig:app_bbox_after}
 \end{figure}
 
+\cleardoublepage
 \section{Visual Case Study: Mitigating Structural Hallucination}
 This section contrasts the extraction outputs of a complex engineering schematic with and without the pipeline's Semantic Pre-Masking defense (detailed in Chapter \ref{ch:graph_masking}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{minipage}{0.48\textwidth}
 \centering
