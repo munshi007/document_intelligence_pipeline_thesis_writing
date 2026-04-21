@@ -146,15 +146,21 @@ Once layout regions have been isolated and their internal content extracted, the
 \end{figure}
 
 \subsection{Pass 1: Atomic Region Chunking}
-The first pass maps the semantic bounding boxes derived from DocLayout-YOLO into atomic graph nodes. Each node stores the raw text, the region classification (e.g., \texttt{Table}, \texttt{Heading}), and its precise geometric provenance within the source PDF. This pass establishes the "spatial foundation" of the document.
+The first pass maps the semantic bounding boxes derived from DocLayout-YOLO into atomic graph nodes. Each node stores the raw text, the region classification (e.g., \texttt{Table}, \texttt{Heading}), and its precise geometric provenance within the source PDF.
+
+To ensure consistency across documents with varying DPI or page dimensions, the pipeline implements a \textit{Recursive Geometry Normalization} phase. The raw pixel coordinates $(x, y)$ predicted by the $1024 \times 1024$ DocLayout-YOLO tensor are mathematically projected back to the foundational vector-space of the source PDF. This ensures that every node contains a deterministic spatial footprint $B = (x_{min}, y_{min}, x_{max}, y_{max})$ that remains stable during subsequent cross-page linking or database ingestion.
+
+Furthermore, this pass populates the initial metadata payload for each node, including the confidence score of the layout classifier and the detected font signature (via the FontAnalyzer described in Chapter~\ref{ch:layout_reading}). This atomic foundation is what enables the pipeline to maintain the "pixel-perfect" semantic link between the raw document and the final structured output.
 
 \subsection{Pass 2: Spatial Linking and Caption Association}
-In the second pass, the pipeline executes a distance-weighted linking algorithm to associate figures and tables with their respective captions. Industrial documents often place captions below tables or above figures; the graph builder computes the vertical distance between \texttt{Caption} nodes and their nearest \texttt{Table}/\texttt{Figure} neighbors. If the distance is within an adaptive threshold and no other semantic boundaries (like a section title) intervene, a \texttt{CAPTIONS\_FOR} edge is instantiated in the graph.
+In the second pass, the pipeline executes a distance-weighted linking algorithm to associate figures and tables with their respective captions. Industrial documents often place captions below tables or above figures; the graph builder computes the vertical distance between \texttt{Caption} nodes and their nearest \texttt{Table} or \texttt{Figure} neighbors.
+
+This mechanism utilizes an \textit{Adaptive Proximity Heuristic}. For every identified caption $C$, the algorithm searches for a corresponding visual region $V$ that satisfies the proximity constraint $\Delta y \le \tau$, where $\tau$ is a scaled threshold derived from the local line height. To prevent erroneous cross-links, the builder incorporates "Intervener Detection": the search is terminated if the spatial traversal encounters a higher-rank semantic boundary, such as a major section header or a physical page limit. If a high-confidence match is found, a \texttt{CAPTIONS\_FOR} edge is instantiated, effectively binding the descriptive text to its visual data primitive.
 
 \subsection{Pass 3: Cross-Reference Resolution and Breadcrumbs}
-The final pass implements the \textit{Breadcrumb System}. As the graph builder traverses the hierarchical tree, it identifies \texttt{Heading} and \texttt{Title} nodes. The text content of these headers is recursively propagated down to all "descendant" nodes (text paragraphs and tables) until the next header of equal or higher rank is encountered. 
+The final pass implements the \textit{Breadcrumb System}, a critical technical contribution designed to solve the problem of "Vector-Search Context Drift." In standard RAG systems, a retrieved paragraph isolated from page 40 may lack the section headers that define its scope. The HKG resolves this by traversing the hierarchical tree and identifying all \texttt{Heading} and \texttt{Title} nodes.
 
-This ensures that a data record extracted from a table on page 40 carries the semantic context of the section it belongs to (e.g., "Section 4.2: Technical Specifications"). 
+As the graph builder propagates through the document topology, it recursively pushes the text of active headers down to all "descendant" nodes (text paragraphs and tables) until a header of equal or higher rank is encountered. This "Semantic Inheritance" ensures that every extracted data point carries the full lineage of its provenance (e.g., "Section 4.2: Technical Specifications $\rightarrow$ Table: Power Ratings"). By embedding these breadcrumbs directly into the retrieval chunks, the pipeline guarantees that the downstream LLM receives a contextually complete prompt, regardless of where the specific node was located in the document structure.
 
 \begin{algorithm}[H]
 \caption{HKG Breadcrumb Propagation (Pass 3)}
