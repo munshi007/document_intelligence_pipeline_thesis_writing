@@ -39,6 +39,13 @@ DocLayout-YOLO (Ours) & \textbf{0.942} & \textbf{0.785} & \textbf{85} \\
 \label{tab:layout_comparison}
 \end{table}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/evaluation/yolo_bboxes.png}
+\caption{Visualization of DocLayout-YOLO output on a high-density industrial datasheet. Notice the precise bounding boxes cleanly separating tables, titles, and text blocks without overlap, resulting in the high mAP@.5:.95 scores.}
+\label{fig:yolo_bboxes}
+\end{figure}
+
 As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP). The primary metric utilized is mAP@.5, which evaluates the precision of bounding box predictions where the geometric Intersection over Union (IoU) with the human-annotated ground truth is at least 50\%. Furthermore, mAP@.5:.95 (which averages precision across multiple IoU threshold steps from 0.5 to 0.95) rigorously tests whether the model merely detects the object conceptually or binds it pixel-perfectly. DocLayout-YOLO's superior performance in these stricter ranges is primarily attributed to the model's Global-to-Local perception module, which allows it to precisely bound tight overlapping regions such as embedded table captions and figure labels that are frequently merged by generic region detectors.
 
 \section{Phase 1: Optical-to-Markdown Fidelity}
@@ -91,6 +98,36 @@ Avg. Tokens per Item & N/A & $\sim$20 & \textbf{$\sim$6} \\
 \label{tab:extraction_fidelity}
 \end{table}
 
+\begin{lstlisting}[language=bash, caption={Phase 1 Output: Raw Markdown retaining grid structure. This optical-to-markdown conversion bypasses the token limits of massive tables.}, label={lst:raw_markdown}]
+<!-- page:1 -->
+Product-PDF for Article 7000-12121-2251000
+# M12 male 90 degrees A-cod. with cable
+PUR 5x0.34 gy UL/CSA 10m
+# ! NOTICE !
+PRODUCT IS DISCONTINUED. PLEASE HAVE A LOOK AT THE ALTERNATIVE PRODUCTS.
+...
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption={Phase 2 Output: Structured JSON perfectly mapped from the raw Markdown. Note the extraction of all parameters without token truncation.}, label={lst:structured_json}]
+{
+  "product_name": "M12 male 90 degrees A-cod. with cable",
+  "art_no": "7000-12121-2251000",
+  "manufacturer": "Murrelektronik",
+  "parameters": [
+    {
+      "name": "Tightening torque",
+      "value": "0 0",
+      "unit": "Nm"
+    },
+    {
+      "name": "...",
+      "value": "...",
+      "unit": "..."
+    }
+  ]
+}
+\end{lstlisting}
+
 The results in Table \ref{tab:extraction_fidelity} highlight the substantial impact of the Two-Pass architecture. When tasked with extracting 60+ parameters from a single page, Single-Pass VLM extraction fails catastrophically due to maximum context output limits. It truncates JSON outputs yielding an 8.0\% pass rate, or hallucinates schema keys to compensate. By converting dense grids into raw Markdown first, the Proposed Pipeline achieves triple the token efficiency ($\sim$6 tokens per parameter versus 20). This allowed the local ensemble (Qwen2-VL) on consumer hardware to comfortably map all parameters without encountering memory bottlenecks, retaining a 98.5\% recall rate. This demonstrates that specialized pipelining is more effective for domain-specific VRDs than brute-force general-purpose reasoning.
 
 \section{Knowledge Graph and Retrieval Quality}
@@ -119,6 +156,11 @@ To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstrea
 \label{fig:retrieval_impact}
 \end{figure}
 
+\begin{lstlisting}[language=bash, caption={Hierarchical Knowledge Graph (HKG) node embedding structural breadcrumbs for context-aware retrieval.}, label={lst:hkg_breadcrumb}]
+[node_001] M12 male 90 degrees A-cod. with cable
+   Content: [CONTEXT: M12 male 90 degrees A-cod. with cable]
+\end{lstlisting}
+
 The term ``breadcrumbs'' refers to the structured lineage path prepended to every chunk in the HKG. For example, a parameter such as ``Operating Voltage: 24V DC'' embedded within a table on page 14 would carry a breadcrumb of the form \texttt{[Section 4.1: Electrical Data $\rightarrow$ Table: Supply Parameters]}. During vector search, this lineage prevents the retrieval engine from confusing identically named parameters across different product sections. The ``Layout Context'' augmentation further attaches spatial metadata (bounding box coordinates, adjacent caption text) so that the downstream language model can ground its answer in the correct visual region of the original document.
 
 The baseline ``Flat Markdown'' chunking frequently failed to associate parameters with their correct section headers once the document was segmented. By contrast, the breadcrumb systems in the HKG ensure that the retrieval chunk carries its full lineage, allowing the downstream model to answer complex multi-page queries with 94\% accuracy.
@@ -144,6 +186,22 @@ Extraction Yield (TEDS) & 31.4\% & \textbf{95.1\%} \\
 \caption{Ablation study demonstrating the resolution of topological hallucination via early-stage tensor redaction.}
 \label{tab:ablation_study}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.45\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/evaluation/table_unmasked.png}
+  \caption{Pre-Masking Disabled: TSR gets confused by embedded graphics (red lines), creating phantom rows.}
+  \label{fig:table_unmasked}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/evaluation/table_masked.png}
+  \caption{Pre-Masking Enabled: Graphical elements are blocked out, allowing perfect structural alignment.}
+  \label{fig:table_masked}
+\end{minipage}
+\end{figure}
 
 As documented in Table \ref{tab:ablation_study}, disabling the pre-masking layer resulted in severe mode collapse for the TSR transformer. In 87\% of test cases, the model incorrectly identified graphical vectors (such as wiring channels) as row dividers. This caused an average over-segmentation hallucination of 43.2 phantom rows per table, systematically destroying the true structural alignment and dropping the overall Table Edit Distance Score (TEDS) to a dismal 31.4\%. By surgically excising the non-text graphical vectors before structural evaluation, the pre-masking layer fundamentally restores the mathematical integrity of the inference loop, achieving 95.1\% fidelity without demanding additional computational parameters.
 
