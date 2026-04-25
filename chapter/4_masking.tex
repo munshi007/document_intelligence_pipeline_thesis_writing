@@ -204,7 +204,16 @@ To concretely illustrate this hierarchical structure, a resulting node generated
 \section{Graph-Native Markdown Ingestion}
 \label{sec:markdown_assembly}
 
-The convergence of the HKG and the extraction layers is finalized by the \textit{ConverterEngine}, which renders the graph into structured Markdown. Crucially, the engine does not just output text; it embeds hidden HTML provenance comments that map every Markdown block back to its unique Graph Node ID:
+To visualize the depth of this structural mapping, Figure \ref{fig:hkg_ontology} presents the clustered ontology generated from a highly complex industrial datasheet. Rather than treating the source document as a linear sequence of words, the ingestion engine constructs a multi-tiered hierarchy. The central product node branches outward into distinct physical components, which further subdivide into specific connectors, individual pins, and finally, the atomic electrical signals assigned to them. The presence of shared nodes---such as a common ground linked across multiple distinct ports---demonstrates that the framework actively builds a relational semantic network rather than merely parsing isolated tables.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{images/evaluation/hkg_topology.png}
+\caption{Librarian HKG: Clustered Component Ontology. A visual representation of the deep, multi-hierarchical structure extracted natively from the document, mapping products to their nested components, connectors, and semantic pins.}
+\label{fig:hkg_ontology}
+\end{figure}
+
+The convergence of the HKG and the extraction layers is finalized by the \textit{ConverterEngine}, which renders this graph into structured Markdown. The engine does not simply output plain text; it embeds hidden HTML provenance comments that map every Markdown block back to its unique Graph Node ID:
 
 \begin{verbatim}
 <!-- id=region_42 -->

@@ -145,7 +145,9 @@ The results in Table \ref{tab:extraction_fidelity} highlight the substantial imp
 \section{Knowledge Graph and Retrieval Quality}
 \label{sec:hkg_results}
 
-To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstream RAG applications \citep{rag_lewis}, we measured retrieval precision for "context-dependent" queries (e.g., "What is the supply voltage for the sensor defined in Section 4.2?").
+To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstream RAG applications \citep{rag_lewis}, we measured retrieval precision for "context-dependent" queries (e.g., "What is the supply voltage for the sensor defined in Section 4.2?"). As illustrated in Figure \ref{fig:retrieval_comparison}, the baseline flat markdown chunking struggled significantly with these queries, achieving only a 58\% retrieval accuracy. Because flat chunking strips away the parent section headers, the retrieval engine often returned parameters belonging to the wrong product variant entirely. 
+
+By contrast, the proposed HKG chunking method boosted retrieval accuracy to 94\%. This improvement is directly attributable to the system's "breadcrumb" injection mechanism, which forces every extracted chunk to carry its full structural lineage. Listing \ref{lst:hkg_breadcrumb} provides a concrete example of this mechanism in action on the evaluation dataset.
 
 \begin{figure}[htbp]
 \centering
@@ -164,13 +166,14 @@ To evaluate the impact of the \textit{Hierarchical Knowledge Graph} on downstrea
 \node[above=0.15cm of flat, anchor=south west, xshift=3cm, align=center, font=\footnotesize\itshape] {Augmented with hierarchical\\breadcrumbs and layout-aware\\section context};
 
 \end{tikzpicture}
-\caption{Impact of the Hierarchical Knowledge Graph on retrieval accuracy. The inclusion of hierarchical breadcrumbs and spatial caption links eliminates ambiguous semantic mapping during vector search.}
-\label{fig:retrieval_impact}
+\caption{Retrieval accuracy comparison: Flat Markdown Chunking vs. Hierarchical Knowledge Graph (HKG) Chunking. The injection of layout-aware section breadcrumbs significantly improves context-dependent query resolution.}
+\label{fig:retrieval_comparison}
 \end{figure}
 
 \begin{lstlisting}[language=bash, caption={Hierarchical Knowledge Graph (HKG) node embedding structural breadcrumbs showing lineage preservation for context-aware retrieval.}, label={lst:hkg_breadcrumb}]
 [node_042] Pin 3: Signal Ground (GND)
-   Content: [CONTEXT: Section 4.6.2 > Port: System Bus Input > Table: M12 Pin-assignment]
+   Content: [CONTEXT: Section 4.6.2 > Port: System Bus Input 
+             > Table: M12 Pin-assignment]
    ------------------------------------------------------------
    | Pin | Assignment | Signal | Function         |
    | --- | ---------- | ------ | ---------------- |
