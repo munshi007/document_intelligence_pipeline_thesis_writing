@@ -83,7 +83,25 @@ With Unsloth integrated and executing atop 4-bit quantized base weights, trainin
 
 Splitting the cognitive load across two distinct datasets prevented early memorization. Rather than struggling to learn both spatial mapping and JSON formatting simultaneously, the models isolated their respective tasks rapidly.
 
-Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss trajectories recorded for both the Llama-Vision (Visual-to-Markdown) and Qwen2-VL (Markdown-to-JSON) models over 1,000 steps. 
+Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss trajectories recorded for both the Llama-Vision (Visual-to-Markdown) and Qwen2-VL (Markdown-to-JSON) models over 1,000 steps. To ensure stable convergence and prevent gradient instability across the pre-trained weights, a cosine decay learning rate schedule with a linear warmup phase was enforced during training, as visualized in Figure \ref{fig:learning_rate_curves}.
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/llama_learning_rate.png}
+  \caption{Llama-Vision 11B Learning Rate.}
+  \label{fig:llama_lr}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/qwen_learning_rate.png}
+  \caption{Qwen2-VL 7B Learning Rate.}
+  \label{fig:qwen_lr}
+\end{minipage}
+\caption{Learning rate schedules for the Dual-Student Architecture. Both models utilize a linear warmup phase followed by a cosine decay trajectory to stabilize LoRA weight updates.}
+\label{fig:learning_rate_curves}
+\end{figure}
 
 \begin{figure}[htbp]
 \centering
