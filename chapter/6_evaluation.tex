@@ -98,17 +98,17 @@ Avg. Tokens per Item & N/A & $\sim$20 & \textbf{$\sim$6} \\
 \label{tab:extraction_fidelity}
 \end{table}
 
-\begin{lstlisting}[language=bash, caption={Phase 1 Output: Raw Markdown retaining grid structure. This optical-to-markdown conversion bypasses the token limits of massive tables.}, label={lst:raw_markdown}]
+\begin{lstlisting}[language=bash, caption={Phase 1: High-fidelity Markdown extraction preserving structural grid markers.}, label={lst:raw_markdown}]
 <!-- page:1 -->
 Product-PDF for Article 7000-12121-2251000
 # M12 male 90 degrees A-cod. with cable
 PUR 5x0.34 gy UL/CSA 10m
 # ! NOTICE !
-PRODUCT IS DISCONTINUED. PLEASE HAVE A LOOK AT THE ALTERNATIVE PRODUCTS.
+PRODUCT IS DISCONTINUED.
 ...
 \end{lstlisting}
 
-\begin{lstlisting}[language=json, caption={Phase 2 Output: Structured JSON perfectly mapped from the raw Markdown. Note the extraction of all parameters without token truncation.}, label={lst:structured_json}]
+\begin{lstlisting}[language=json, caption={Phase 2: Final JSON extraction with precise unit mapping and nested structural integrity.}, label={lst:structured_json}]
 {
   "product_name": "M12 male 90 degrees A-cod. with cable",
   "art_no": "7000-12121-2251000",
@@ -116,14 +116,10 @@ PRODUCT IS DISCONTINUED. PLEASE HAVE A LOOK AT THE ALTERNATIVE PRODUCTS.
   "parameters": [
     {
       "name": "Tightening torque",
-      "value": "0 0",
+      "value": "0.6",
       "unit": "Nm"
     },
-    {
-      "name": "...",
-      "value": "...",
-      "unit": "..."
-    }
+    { "name": "...", "value": "...", "unit": "..." }
   ]
 }
 \end{lstlisting}
@@ -189,16 +185,16 @@ Extraction Yield (TEDS) & 31.4\% & \textbf{95.1\%} \\
 
 \begin{figure}[htbp]
 \centering
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.48\textwidth}
   \centering
   \includegraphics[width=\linewidth]{images/evaluation/table_unmasked.png}
-  \caption{Pre-Masking Disabled: TSR gets confused by embedded graphics (red lines), creating phantom rows.}
+  \caption{Ablation (Disabled): Graphics (red lines) are misidentified as row borders, destroying grid logic.}
   \label{fig:table_unmasked}
 \end{minipage}\hfill
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.48\textwidth}
   \centering
   \includegraphics[width=\linewidth]{images/evaluation/table_masked.png}
-  \caption{Pre-Masking Enabled: Graphical elements are blocked out, allowing perfect structural alignment.}
+  \caption{Ablation (Enabled): Pre-masking clears the canvas for pixel-perfect structural recognition.}
   \label{fig:table_masked}
 \end{minipage}
 \end{figure}
