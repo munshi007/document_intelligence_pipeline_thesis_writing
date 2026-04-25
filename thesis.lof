@@ -1,0 +1,32 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces The Overall Document Intelligence Pipeline Architecture.}}{4}{figure.caption.3}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces The Detection Transformer (DETR) architecture \citep {detr_carion}. By combining a CNN backbone for feature extraction with a globally-attentive Transformer encoder-decoder, the model eliminates the need for hand-crafted anchors and NMS, instead predicting a fixed set of $N$ objects directly.}}{8}{figure.caption.4}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces LoRA architecture \citep {lora}. Freezing $W_0$ and training the low-rank factors $A$ and $B$ reduces trainable parameters by approximately 98\%, making 11B-parameter model fine-tuning feasible on a single 24 GB GPU.}}{15}{figure.caption.5}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces The Ensemble Architecture of the Layout Detection Phase. The pipeline combines DocLayout-YOLO visual predictions with native font primitives to establish reading order, followed by VLM-based verification.}}{18}{figure.caption.6}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Dual-Branch Data Flow Diagram. Instead of relying purely on visual representation, the pipeline splits the unstructured page into a visual branch (predicting normalized geometric arrays via DocLayout-YOLO) and a native textual branch (extracting deterministic structural tokens). These streams are mathematically merged and structurally verified by the VLM.}}{20}{figure.caption.7}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces The hierarchical routing and verification loop. Tables are routed based on geometric scores; the extraction is subsequently validated by a QA layer that can trigger fallback attempts.}}{24}{figure.caption.8}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Geometric visualization of the Semantic Pre-Masking algorithm. Destructive optical obscuration removes dense engineering schematic vectors prior to Table Transformer (TATR) object detection inference.}}{36}{figure.caption.9}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces The schema of the Hierarchical Knowledge Graph (HKG). Dashed lines represent the "Breadcrumb" propagation logic where section context is injected into spatially or logically adjacent data chunks.}}{38}{figure.caption.10}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Librarian HKG: Clustered Component Ontology. A visual representation of the deep, multi-hierarchical structure extracted natively from the document, mapping products to their nested components, connectors, and semantic pins.}}{42}{figure.caption.11}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Peak VRAM consumption comparison for 4-bit LoRA distillation showing Unsloth preventing RTX 3090 (24GB) Out-of-Memory failures.}}{49}{figure.caption.12}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces LoRA Training Loss curves derived directly from Weights \& Biases telemetry. The Qwen2-VL text-only extraction model converged extremely rapidly, stabilizing at a terminal loss of $\sim $0.12 in just 200 steps due to the absence of noisy visual parameters. The Llama-Vision model, processing dense 1024x1024 visual tensors, required a full 1000 steps to stabilize around a loss of 0.08, successfully avoiding overfitting against the complex engineering schematics.}}{50}{figure.caption.13}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Visual layout detection (Before vs After): Comparison of the raw engineering catalog page against the corresponding DocLayout-YOLO prediction tensors. The model cleanly encapsulates complex tables, pin-assignment figures, and multi-column text blocks, ensuring high mAP and spatial recall.}}{54}{figure.caption.15}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Retrieval accuracy comparison: Flat Markdown Chunking vs. Hierarchical Knowledge Graph (HKG) Chunking. The injection of layout-aware section breadcrumbs significantly improves context-dependent query resolution.}}{58}{figure.caption.18}%
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Ablation (Disabled): Graphics (red lines) are misidentified as row borders, destroying grid logic.}}{60}{figure.caption.20}%
+\contentsline {figure}{\numberline {7.4}{\ignorespaces Ablation (Enabled): Pre-masking clears the canvas for pixel-perfect structural recognition.}}{60}{figure.caption.20}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {A.1}{\ignorespaces The model erroneously registers internal schematic wires as table row delineators, causing infinite loop text generation.}}{71}{figure.caption.23}%
+\contentsline {figure}{\numberline {A.2}{\ignorespaces With the internal graph masked, the extracted JSON adheres perfectly to the Pydantic schema without dropping into hallucination loops.}}{71}{figure.caption.23}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

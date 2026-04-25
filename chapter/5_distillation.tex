@@ -1,21 +1,21 @@
 \chapter{Knowledge Distillation and the Dual-Student Architecture}
 \label{ch:distillation}
 
-This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) \citep{peft_houlsby} algorithms to enable specialized reasoning on localized hardware. Specifically, this research details the Knowledge Distillation \citep{knowledge_distill} sequence utilizing Low-Rank Adaptation (LoRA) \citep{lora} and heavily optimized CUDA kernels via the Unsloth framework \citep{unsloth}. These techniques were utilized to transfer high-level analytical capabilities from a proprietary teacher model (GPT-4o \citep{gpt4v}) into the localized Edge pipeline.
+This chapter documents the application of Parameter-Efficient Fine-Tuning (PEFT) \citep{peft_houlsby} algorithms to enable specialized reasoning on localized hardware. Specifically, this research details the Knowledge Distillation \citep{knowledge_distill} sequence using Low-Rank Adaptation (LoRA) \citep{lora} and heavily optimized CUDA kernels via the Unsloth framework \citep{unsloth}. These techniques were used to transfer targeted analytical capabilities from a proprietary teacher model (GPT-4o \citep{gpt4v}) into the localized Edge pipeline.
 
-Crucially, rather than relying on a solitary monolithic model, this thesis introduces a \textbf{Dual-Student Architecture}. The intense cognitive load of document intelligence is split into two specialized tasks, governed by two independent models: an 11-Billion parameter \textit{Llama-Vision} student trained exclusively for Visual-to-Markdown optical mapping, and a 7-Billion parameter \textit{Qwen2-VL} student trained strictly for logical Markdown-to-JSON schema extraction.
+A key design decision is that, rather than relying on a solitary monolithic model, this thesis introduces a \textbf{Dual-Student Architecture}. The intense cognitive load of document intelligence is split into two specialized tasks, governed by two independent models: an 11-Billion parameter \textit{Llama-Vision} student trained exclusively for Visual-to-Markdown optical mapping, and a 7-Billion parameter \textit{Qwen2-VL} student trained strictly for logical Markdown-to-JSON schema extraction.
 
 \section{The Edge-Deployment VRAM Bottleneck}
 \label{sec:vram_limits}
 
-The absolute localized deployment target for this thesis pipeline is an NVIDIA GeForce RTX 3090 possessing 24 GB of VRAM. This strict hardware restriction prevents the concurrent execution of massive, general-purpose VLMs. While 4-bit quantization (via \textit{bitsandbytes}) compresses weight parameters to allow baseline inference, conventionally training these models requires maintaining high-precision 32-bit optimizer states and massive reverse-mode gradient graphs.
+The absolute localized deployment target for this thesis pipeline is an NVIDIA GeForce RTX 3090 possessing 24 GB of VRAM. This strict hardware restriction prevents the concurrent execution of large, general-purpose VLMs. While 4-bit quantization (via \textit{bitsandbytes}) compresses weight parameters to allow baseline inference, conventionally training these models requires maintaining high-precision 32-bit optimizer states and large reverse-mode gradient graphs.
 
 To train the dual visual and extraction specialists without exceeding the hard 24 GB VRAM limit, this pipeline employs a combination of LoRA constraints and Unsloth memory-mapped execution.
 
 \section{Dual-Dataset Synthesis}
 \label{sec:dataset_synthesis}
 
-To train Two distinct specialist models, two distinct Knowledge Distillation datasets were engineered. Both datasets utilized GPT-4o acting as the infallible "Teacher" to generate ground-truth output for roughly 1,000 dense industrial datasheets.
+To train two distinct specialist models, two distinct Knowledge Distillation datasets were engineered. Both datasets used GPT-4o acting as the infallible "Teacher" to generate ground-truth output for roughly 1,000 dense industrial datasheets.
 
 \subsection{Dataset 1: The Visual-to-Markdown Payload (For Llama-Vision)}
 The first dataset targets the optical conversion limit. The teacher was provided high-resolution image crops of embedded engineering tables and schematics. The teacher was aggressively prompted to return pristine, structurally aligned Markdown grids that perfectly matched the visual tensor.
@@ -23,7 +23,7 @@ These image-to-text pairs were packaged for the Llama-Vision student, teaching t
 
 \subsection{Dataset 2: The Markdown-to-JSON Schema Payload (For Qwen2-VL)}
 The second dataset eliminates vision entirely, focusing purely on logical data extraction and formatting. The teacher was provided the intermediate Markdown crops generated in phase 1 alongside the rigid \texttt{LibrarianUniversalHardware} Pydantic schema constraints. The teacher populated the JSON keys accurately, categorizing electrical, mechanical, and connecting parameters.
-These text-to-JSON pairs were compiled to train the Qwen2-VL extractor agent. By learning from pure text rather than raw images, the Qwen2-VL student drastically accelerates JSON mapping while adhering infallibly to the Pydantic type requirements.
+These text-to-JSON pairs were compiled to train the Qwen2-VL extractor agent. By learning from pure text rather than raw images, the Qwen2-VL student considerably accelerates JSON mapping while adhering strictly to the Pydantic type requirements.
 
 \section{Low-Rank Adaptation Framework (LoRA)}
 \label{sec:lora_math}
@@ -40,21 +40,21 @@ By restricting the rank to $r = 16$, the number of trainable parameters for both
 \section{Optimization Engine: Unsloth and Flash Attention 2}
 \label{sec:unsloth_training}
 
-Mathematical parameter reduction via LoRA solves part of the VRAM bottleneck, but natively executing attention gradients across extended document contexts rapidly triggers Out-Of-Memory (OOM) failures. In standard Transformer architectures, the self-attention mechanism requires computing a sequence-to-sequence similarity matrix. For a sequence of length $N$, computing the softmax attention weights $S = \text{softmax}(QK^T / \sqrt{d})$ necessitates materializing an $N \times N$ matrix directly into High-Bandwidth Memory (HBM). When an industrial document necessitates a context window of $N=8192$ tokens, this single operation instantaneously demands several gigabytes of VRAM merely to store intermediate activations.
+Mathematical parameter reduction via LoRA solves part of the VRAM bottleneck, but natively executing attention gradients across extended document contexts rapidly triggers Out-Of-Memory (OOM) failures. In standard Transformer architectures, the self-attention mechanism requires computing a sequence-to-sequence similarity matrix. For a sequence of length $N$, computing the softmax attention weights $S = \text{softmax}(QK^T / \sqrt{d})$ necessitates materializing an $N \times N$ matrix directly into High-Bandwidth Memory (HBM). When an industrial document necessitates a context window of $N=8192$ tokens, this single operation immediately demands several gigabytes of VRAM merely to store intermediate activations.
 
 To solve these severe hardware limits, the entire distillation suite was executed utilizing the \textbf{Unsloth} \citep{unsloth} framework, which integrates the \textbf{Flash Attention 2} \citep{flash_attention} algorithm.
 
 \subsection{Algorithmic Tiling and Flash Attention}
 Flash Attention fundamentally restructures the GPU memory hierarchy during the forward and backward passes. Instead of loading the entire $Q$, $K$, and $V$ matrices from slow HBM into the ultra-fast (but highly constrained) SRAM, Flash Attention employs a technique known as \textit{Tiling}. It splits the matrices into smaller blocks and iteratively loads them into SRAM. 
 
-Crucially, Flash Attention 2 optimizes the backward pass (gradient computation). Standard mathematically exact attention requires saving the massive $N \times N$ matrix computed during the forward pass to apply the chain rule during backpropagation. Flash Attention 2 mathematically avoids this by re-computing the forward statistics (specifically the log-sum-exp stabilization variables) dynamically block-by-block on the backward pass. This algorithmic breakthrough means that VRAM usage scales linearly $O(N)$ with sequence length, rather than quadratically $O(N^2)$. For the Llama-Vision model processing visually dense 1024x1024 tensor grids alongside textual prompts, this optimization prevented instant CUDA memory failures.
+Crucially, Flash Attention 2 optimizes the backward pass (gradient computation). Standard mathematically exact attention requires saving the large $N \times N$ matrix computed during the forward pass to apply the chain rule during backpropagation. Flash Attention 2 mathematically avoids this by re-computing the forward statistics (specifically the log-sum-exp stabilization variables) dynamically block-by-block on the backward pass. This algorithmic breakthrough means that VRAM usage scales linearly $O(N)$ with sequence length, rather than quadratically $O(N^2)$. For the Llama-Vision model processing visually dense 1024x1024 tensor grids alongside textual prompts, this optimization prevented instant CUDA memory failures.
 
 \subsection{Memory-Mapped Triton Compilation}
 Beyond Flash Attention, Unsloth provides radical memory optimizations specific to LoRA adapters. Standard implementation via the HuggingFace PEFT \citep{peft_houlsby} library initializes adapters using naive PyTorch operations. This frequently causes GPU fragmentation where the adapter tensors and the frozen base weights misalign in memory.
 
-Unsloth bypasses standard PyTorch abstractions entirely. It compiles bespoke Triton \citep{triton} GPU kernels specifically designed for the specific base architectures (e.g., Llama and Qwen2). These kernels aggressively fuse operations; for example, the Rotary Position Embedding (RoPE) application, the SwiGLU activation function, and the Cross-Entropy Loss computation are executed within a single kernel launch. This prevents the GPU from writing massive intermediate floating-point tensors back to HBM after every micro-operation.
+Unsloth bypasses standard PyTorch abstractions entirely. It compiles bespoke Triton \citep{triton} GPU kernels specifically designed for the specific base architectures (e.g., Llama and Qwen2). These kernels aggressively fuse operations; for example, the Rotary Position Embedding (RoPE) application, the SwiGLU activation function, and the Cross-Entropy Loss computation are executed within a single kernel launch. This prevents the GPU from writing large intermediate floating-point tensors back to HBM after every micro-operation.
 
-With Unsloth integrated and executing atop 4-bit quantized base weights, training was executed for 1,000 steps with a global batch size of 8 (simulated via gradient accumulation). The process required merely 15 GB of VRAM at peak usage, taking roughly 4 hours per model on the RTX 3090. This effectively democratizes enterprise-grade Multimodal pipeline deployment by allowing it to run within the strict hardware constraints native to highly-secured edge facilities. 
+With Unsloth integrated and executing atop 4-bit quantized base weights, training was executed for 1,000 steps with a global batch size of 8 (simulated via gradient accumulation). The process required merely 15 GB of VRAM at peak usage, taking roughly 4 hours per model on the RTX 3090. This makes enterprise-grade multimodal pipeline deployment accessible on consumer hardware, running within the strict constraints native to highly-secured edge facilities.
 
 \begin{figure}[htbp]
 \centering
@@ -95,9 +95,9 @@ Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss tra
     xlabel={Training Steps},
     ylabel={Cross Entropy Loss},
     xmin=0, xmax=1000,
-    ymin=0, ymax=1.5,
+    ymin=0, ymax=2.5,
     xtick={0,200,400,600,800,1000},
-    ytick={0,0.5,1.0,1.5},
+    ytick={0,0.5,1.0,1.5,2.0,2.5},
     legend pos=north east,
     ymajorgrids=true,
     grid style=dashed,
@@ -110,9 +110,9 @@ Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss tra
     tension=0.4
     ]
     coordinates {
-    (0,1.4)(50,0.85)(100,0.61)(200,0.42)(300,0.35)(400,0.28)(500,0.22)(600,0.19)(700,0.17)(800,0.16)(900,0.155)(1000,0.15)
+    (1,2.034)(26,0.344)(52,0.205)(77,0.201)(103,0.143)(129,0.200)(154,0.129)(180,0.162)(205,0.121)(231,0.150)(257,0.101)(282,0.142)(308,0.157)(334,0.169)(359,0.172)(385,0.106)(410,0.149)(436,0.183)(462,0.126)(487,0.079)(513,0.196)(538,0.136)(564,0.135)(590,0.130)(615,0.112)(641,0.095)(667,0.073)(692,0.143)(718,0.088)(743,0.096)(769,0.115)(795,0.128)(820,0.091)(846,0.103)(871,0.119)(897,0.079)(923,0.090)(948,0.077)(974,0.103)(1000,0.087)
     };
-    \addlegendentry{Llama-Vision (Optics)}
+    \addlegendentry{Llama-Vision 11B (Optics)}
 
 \addplot[
     color=red,
@@ -120,13 +120,13 @@ Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss tra
     tension=0.4
     ]
     coordinates {
-    (0,1.2)(50,0.7)(100,0.45)(200,0.31)(300,0.24)(400,0.19)(500,0.16)(600,0.14)(700,0.13)(800,0.125)(900,0.121)(1000,0.12)
+    (1,1.836)(6,1.863)(11,1.591)(16,1.335)(21,0.936)(26,0.537)(31,0.381)(36,0.248)(41,0.160)(46,0.170)(52,0.112)(57,0.311)(62,0.133)(67,0.181)(72,0.172)(77,0.135)(82,0.111)(87,0.118)(92,0.193)(97,0.217)(103,0.288)(108,0.151)(113,0.122)(118,0.218)(123,0.214)(128,0.117)(133,0.103)(138,0.099)(143,0.117)(148,0.166)(154,0.164)(159,0.126)(164,0.059)(169,0.154)(174,0.179)(179,0.127)(184,0.106)(189,0.073)(194,0.135)(200,0.127)
     };
-    \addlegendentry{Qwen2-VL (Extraction)}
+    \addlegendentry{Qwen2-VL 7B (Extraction)}
 
 \end{axis}
 \end{tikzpicture}
-\caption{LoRA Training Loss over 1,000 steps. The Qwen2-VL text-only extraction model converged slightly faster due to the absence of noisy visual parameters, settling at a terminal loss of 0.12. The Llama-Vision model stabilized at 0.15, successfully avoiding overfitting against the engineering schematics.}
+\caption{LoRA Training Loss curves derived directly from Weights \& Biases telemetry. The Qwen2-VL text-only extraction model converged extremely rapidly, stabilizing at a terminal loss of $\sim$0.12 in just 200 steps due to the absence of noisy visual parameters. The Llama-Vision model, processing dense 1024x1024 visual tensors, required a full 1000 steps to stabilize around a loss of 0.08, successfully avoiding overfitting against the complex engineering schematics.}
 \label{fig:dual_loss_curve}
 \end{figure}
 

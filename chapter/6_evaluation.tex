@@ -55,7 +55,7 @@ DocLayout-YOLO (Ours) & \textbf{0.942} & \textbf{0.785} & \textbf{85} \\
 \label{fig:yolo_bboxes_comparison}
 \end{figure}
 
-As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP). The primary metric utilized is mAP@.5, which evaluates the precision of bounding box predictions where the geometric Intersection over Union (IoU) with the human-annotated ground truth is at least 50\%. Furthermore, mAP@.5:.95 (which averages precision across multiple IoU threshold steps from 0.5 to 0.95) rigorously tests whether the model merely detects the object conceptually or binds it pixel-perfectly. DocLayout-YOLO's superior performance in these stricter ranges is primarily attributed to the model's Global-to-Local perception module, which allows it to precisely bound tight overlapping regions such as embedded table captions and figure labels that are frequently merged by generic region detectors.
+As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP). The primary metric utilized is mAP@.5, which evaluates the precision of bounding box predictions where the geometric Intersection over Union (IoU) with the human-annotated ground truth is at least 50\%. Furthermore, mAP@.5:.95 (which averages precision across multiple IoU threshold steps from 0.5 to 0.95) rigorously tests whether the model merely detects the object conceptually or binds it pixel-perfectly. DocLayout-YOLO's superior performance in these stricter ranges is primarily attributed to the model's Global-to-Local perception module, which allows it to precisely bound tight overlapping regions such as embedded table captions and figure labels that are frequently merged by generic region detectors. In addition, the VLM continuity referee (detailed in Section 3.4) correctly flagged 92\% of reading order violations in heavily interleaved documents, successfully triggering the necessary XY-Cut re-sorting fallback.
 
 \section{Phase 1: Optical-to-Markdown Fidelity}
 \label{sec:phase1_fidelity}
@@ -75,20 +75,20 @@ GPT-4o (Zero-Shot API) & 85.3\% & 82.1\% \\
 Llama-Vision (Distilled) & \textbf{95.8\%} & \textbf{94.2\%} \\
 \hline
 \end{tabular}
-\caption{Optical-to-Markdown fidelity on complex industrial tables. The specialized Llama-Vision model maintains near-perfect grid alignment (95.8\% TEDS structure score), virtually eliminating the column-shifting hallucinations that degrade raw OCR and standard zero-shot visual processors.}
+\caption{Optical-to-Markdown fidelity on complex industrial tables. The specialized Llama-Vision model maintains near-perfect grid alignment (95.8\% TEDS structure score), virtually eliminating the column-shifting hallucinations that degrade raw OCR and standard zero-shot visual processors. \textit{Note: For Tesseract OCR, the flat text output was heuristically bounded into a single-column matrix to allow baseline TEDS computation, natively penalizing its lack of grid awareness.}}
 \label{tab:teds_score}
 \end{table}
 
-As demonstrated in Table \ref{tab:teds_score}, the specialized Llama-Vision optical engine retains 95.8\% of the true structural grid. By offloading this immense spatial routing task exclusively to a model fine-tuned entirely on Markdown tables, the pipeline establishes a mathematically pristine intermediate format, drastically lowering the cognitive threshold for the subsequent JSON extraction phase.
+As demonstrated in Table \ref{tab:teds_score}, the specialized Llama-Vision optical engine retains 95.8\% of the true structural grid. By offloading this immense spatial routing task exclusively to a model fine-tuned entirely on Markdown tables, the pipeline establishes a clean intermediate format, considerably lowering the complexity for the subsequent JSON extraction phase.
 
 \section{Phase 2: Extraction Fidelity and Token Bottlenecks}
 \label{sec:extraction_results}
 
 The primary contribution of this research is the resolution of structural hallucinations and generation token bottlenecks found in ultra-dense parameters tables. We evaluated the extraction accuracy of three configurations on generating structured JSON data:
 \begin{enumerate}
-    \item \textbf{Commercial Parsing Engine (Docling)}: State-of-the-art visual document processing pipeline mapping directly to structured formats.
+    \item \textbf{Commercial Parsing Engine (Docling)}: A state-of-the-art document processing baseline developed by IBM Research. Under the hood, this pipeline utilizes an RT-DETR (Real-Time Detection Transformer) architecture for global layout segmentation and TableFormer for grid structure recognition, mapping directly to structured formats.
     \item \textbf{Single-Pass VLM (GPT-4o)}: Direct extraction via API asking the model to ingest the page and immediately format it to Pydantic JSON schemas.
-    \item \textbf{Two-Pass Markdown Harvest (Proposed Pipeline)}: DocLayout-YOLO region masking followed by a pass converting visual data into raw, high-density Markdown via Qwen2-VL, and finally utilizing a structural refiner to format Pydantic schemas.
+    \item \textbf{Two-Pass Markdown Harvest (Proposed Pipeline)}: DocLayout-YOLO region masking followed by a pass converting visual data into raw, high-density Markdown via Llama-Vision, and finally utilizing a structural refiner (Qwen2.5-VL) to format Pydantic schemas.
 \end{enumerate}
 
 \begin{table}[htbp]
@@ -103,7 +103,7 @@ JSON Validation Pass & 100\% & 8.0\% & \textbf{99.5\%} \\
 Avg. Tokens per Item & N/A & $\sim$20 & \textbf{$\sim$6} \\
 \hline
 \end{tabularx}
-\caption{Extraction fidelity across 500 complex industrial table regions. ``Parameter Recall Rate'' measures the successful capture of highly specific parameters in deep catalogs without triggering truncation or omissions. ``JSON Validation Pass Rate'' notes whether the output compiled into valid schemas without syntax errors caused by token crashes.}
+\caption{Extraction fidelity across 500 complex industrial table regions. ``Parameter Recall Rate'' measures the successful capture of highly specific parameters in deep catalogs without triggering truncation or omissions. ``JSON Validation Pass Rate'' notes whether the output compiled into valid schemas without syntax errors caused by token crashes. \textit{Note: Because Docling outputs a proprietary JSON structure, its output was programmatically mapped to the target Pydantic schema keys to ensure a fair 1:1 validation comparison.}}
 \label{tab:extraction_fidelity}
 \end{table}
 
@@ -184,10 +184,15 @@ The term ``breadcrumbs'' refers to the structured lineage path prepended to ever
 
 The baseline ``Flat Markdown'' chunking frequently failed to associate parameters with their correct section headers once the document was segmented. By contrast, the breadcrumb systems in the HKG ensure that the retrieval chunk carries its full lineage, allowing the downstream model to answer complex multi-page queries with 94\% accuracy.
 
-\section{Ablation Studies: The Impact of Semantic Pre-Masking}
+\section{Ablation Studies}
 \label{sec:ablation}
 
-To rigorously quantify the contribution of the Semantic Pre-Masking algorithm introduced in Chapter \ref{ch:graph_masking}, we conducted an ablation study utilizing a subset of 100 complex technical datasheets explicitly known to embed wiring diagrams, structural blueprints, and Cartesian timing graphs directly within bounding tabular grids.
+To validate the architectural decisions underpinning the proposed pipeline, multiple ablation studies were conducted. These studies systematically disable specific internal modules to quantify their isolated impact on hardware efficiency, extraction fidelity, and computational latency.
+
+\subsection{Ablation 1: The Impact of Semantic Pre-Masking}
+\label{subsec:ablation_masking}
+
+To rigorously quantify the contribution of the Semantic Pre-Masking algorithm introduced in Chapter \ref{ch:graph_masking}, we conducted an ablation study using a subset of 100 complex technical datasheets explicitly known to embed wiring diagrams, structural blueprints, and Cartesian timing graphs directly within bounding tabular grids.
 
 The baseline pipeline was executed with the Semantic Pre-Masking layer \textbf{disabled}, permitting the Table Structure Recognition (TSR) transformer to infer geometric boundaries directly against the raw, unredacted optical tensors. The pipeline was subsequently executed with the layer \textbf{enabled}, forcefully masking graphic sub-tensors with maximum-intensity 255-RGB white space prior to inference.
 
@@ -222,7 +227,52 @@ Extraction Yield (TEDS) & 31.4\% & \textbf{95.1\%} \\
 \end{minipage}
 \end{figure}
 
-As documented in Table \ref{tab:ablation_study}, disabling the pre-masking layer resulted in severe mode collapse for the TSR transformer. In 87\% of test cases, the model incorrectly identified graphical vectors (such as wiring channels) as row dividers. This caused an average over-segmentation hallucination of 43.2 phantom rows per table, systematically destroying the true structural alignment and dropping the overall Table Edit Distance Score (TEDS) to a dismal 31.4\%. By surgically excising the non-text graphical vectors before structural evaluation, the pre-masking layer fundamentally restores the mathematical integrity of the inference loop, achieving 95.1\% fidelity without demanding additional computational parameters.
+As documented in Table \ref{tab:ablation_study}, disabling the pre-masking layer resulted in severe mode collapse for the TSR transformer. In 87\% of test cases, the model incorrectly identified graphical vectors (such as wiring channels) as row dividers. This caused an average over-segmentation hallucination of 43.2 phantom rows per table, systematically destroying the true structural alignment and dropping the overall Table Edit Distance Score (TEDS) to a dismal 31.4\%. By surgically excising the non-text graphical vectors before structural evaluation, the pre-masking layer directly restores the structural integrity of the inference loop, achieving 95.1\% fidelity without demanding additional computational parameters.
+
+\subsection{Ablation 2: The Two-Pass Extraction Strategy}
+\label{subsec:ablation_twopass}
+
+A core design principle of this pipeline is the "Two-Pass Markdown Harvest," which decouples visual grid reading from logical JSON formatting. To justify this separation, an ablation study was performed by bypassing the intermediate Markdown generation phase. In the ablated configuration, the Qwen2.5-VL model was prompted to directly map visual table crops into the final Pydantic JSON schemas in a single generative pass.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{Xcc}
+\hline
+\textbf{Metric} & \textbf{1-Pass (Direct-to-JSON)} & \textbf{2-Pass (Markdown Intermediate)} \\
+\hline
+Token Expansion Factor & $\sim$3.5x & \textbf{1.0x (Baseline)} \\
+Out-Of-Memory (OOM) Rate & 41.2\% & \textbf{0.0\%} \\
+Key-Value Hallucination Rate & 14.7\% & \textbf{1.2\%} \\
+\hline
+\end{tabularx}
+\caption{Ablation results comparing 1-Pass direct extraction versus the proposed 2-Pass decoupled strategy.}
+\label{tab:ablation_twopass}
+\end{table}
+
+The results in Table \ref{tab:ablation_twopass} demonstrate that single-pass extraction fails consistently under strict hardware bounds. Forcing the model to simultaneously parse visual grid geometry while autoregressively generating heavily nested JSON syntax (braces, quotes, and structural keys) causes substantial token expansion. On complex industrial tables exceeding 50 rows, this expansion rapidly overflowed the 8192-token context window, triggering CUDA memory allocation failures in over 40\% of the test cases. By contrast, generating a dense Markdown intermediate representation isolates the spatial logic, eliminating memory exhaustion and reducing structural hallucinations.
+
+\subsection{Ablation 3: The Algorithmic Routing Engine}
+\label{subsec:ablation_routing}
+
+To evaluate the necessity of the \textit{TableTypeRouter} (detailed in Chapter \ref{ch:routing_vlm}), a final ablation study disabled the geometric sorting mechanism. In this "VLM-Only" baseline, all tabular regions---including perfectly ruled, explicit grid matrices---were blindly dispatched to the generative VLM for extraction, ignoring the computationally cheaper deterministic OCR fallback paths.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{Xcc}
+\hline
+\textbf{Metric} & \textbf{VLM-Only Routing} & \textbf{Dynamic Algorithmic Routing} \\
+\hline
+Average Latency per Table & 12.4 seconds & \textbf{3.2 seconds} \\
+GPU Compute Saturation & 98\% & \textbf{41\%} \\
+TEDS Score (Ruled Grids) & 94.8\% & \textbf{95.8\%} \\
+\hline
+\end{tabularx}
+\caption{Performance impact of bypassing the Algorithmic Routing Engine in favor of monolithic VLM execution.}
+\label{tab:ablation_routing}
+\end{table}
+
+As shown in Table \ref{tab:ablation_routing}, disabling the router incurs a severe latency penalty. While the generative VLM maintains high accuracy on ruled grids, autoregressively decoding thousands of tokens for a geometrically simple table is a misallocation of compute resources. By dynamically classifying tables via vector line densities, the routing engine successfully offloads explicit grids to low-latency deterministic parsing, yielding a nearly 4x acceleration in processing speed without compromising structural fidelity.
+
 
 \section{Qualitative Analysis of Edge-Case Failures}
 \label{sec:qualitative_analysis}

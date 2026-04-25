@@ -1,0 +1,266 @@
+\begin{thebibliography}{37}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{\textsc{Bai} et~al.(2023)\textsc{Bai}, \textsc{Bai}, \textsc{Yang},
+  \textsc{Wang}, \textsc{Tan}, \textsc{Wang}, \textsc{Lin}, \textsc{Zhou} und
+  \textsc{Zhou}}]{qwen_vl}
+[\textsc{Bai} et~al. 2023] J.~Bai, S.~Bai, S.~Yang, S.~Wang, S.~Tan, P.~Wang,
+  J.~Lin, C.~Zhou und J.~Zhou.
+\newblock \textbf{{Qwen-VL}: A Versatile Vision-Language Model for
+  Understanding, Localization, Text Reading, and Beyond}.
+\newblock arXiv preprint arXiv:2308.12966, 2023.
+
+\bibitem[{\textsc{Blecher} et~al.(2023)\textsc{Blecher}, \textsc{Cucurull},
+  \textsc{Scialom} und \textsc{Stojnic}}]{nougat}
+[\textsc{Blecher} et~al. 2023] L.~Blecher, G.~Cucurull, T.~Scialom und
+  R.~Stojnic.
+\newblock \textbf{Nougat: Neural Optical Understanding for Academic Documents}.
+\newblock arXiv preprint arXiv:2308.13418, 2023.
+
+\bibitem[{\textsc{Bradski}(2000)}]{opencv}
+[\textsc{Bradski} 2000] G.~Bradski.
+\newblock \textbf{The OpenCV Library}.
+\newblock Dr. Dobb's Journal of Software Tools, 2000.
+
+\bibitem[{\textsc{Carion} et~al.(2020)\textsc{Carion}, \textsc{Massa},
+  \textsc{Synnaeve}, \textsc{Usunier}, \textsc{Kirillov} und
+  \textsc{Zagoruyko}}]{detr_carion}
+[\textsc{Carion} et~al. 2020] N.~Carion, F.~Massa, G.~Synnaeve, N.~Usunier,
+  A.~Kirillov und S.~Zagoruyko.
+\newblock \textbf{End-to-End Object Detection with Transformers}.
+\newblock In: European Conference on Computer Vision (ECCV), pp. 213--229.
+  2020, Springer.
+
+\bibitem[{\textsc{Colvin}(2019)}]{pydantic}
+[\textsc{Colvin}] \textbf{Pydantic: Data validation using Python type hints}.
+\newblock \url{https://github.com/pydantic/pydantic}.
+
+\bibitem[{\textsc{Dao}(2023)}]{flash_attention}
+[\textsc{Dao} 2023] T.~Dao.
+\newblock \textbf{FlashAttention-2: Faster Attention with Better Parallelism
+  and Work Partitioning}.
+\newblock arXiv preprint arXiv:2307.08691, 2023.
+
+\bibitem[{\textsc{Dettmers} et~al.(2023)\textsc{Dettmers}, \textsc{Pagnoni},
+  \textsc{Holtzman} und \textsc{Zettlemoyer}}]{qlora}
+[\textsc{Dettmers} et~al. 2023] T.~Dettmers, A.~Pagnoni, A.~Holtzman und
+  L.~Zettlemoyer.
+\newblock \textbf{{QLoRA}: Efficient Finetuning of Quantized LLMs}.
+\newblock Advances in Neural Information Processing Systems, Vol.~36, 2023.
+
+\bibitem[{\textsc{Dosovitskiy} et~al.(2020)\textsc{Dosovitskiy},
+  \textsc{Beyer}, \textsc{Kolesnikov}, \textsc{Weissenborn}, \textsc{Zhai},
+  \textsc{Unterthiner}, \textsc{Dehghani}, \textsc{Minderer}, \textsc{Heigold},
+  \textsc{Gelly} et~al.}]{vit}
+[\textsc{Dosovitskiy} et~al. 2020] A.~Dosovitskiy, L.~Beyer, A.~Kolesnikov,
+  D.~Weissenborn, X.~Zhai, T.~Unterthiner, M.~Dehghani, M.~Minderer,
+  G.~Heigold, S.~Gelly et~al.
+\newblock \textbf{An Image is Worth 16x16 Words: Transformers for Image
+  Recognition at Scale}.
+\newblock arXiv preprint arXiv:2010.11929, 2020.
+
+\bibitem[{\textsc{Du} et~al.(2023)\textsc{Du}, \textsc{Li}, \textsc{Torralba},
+  \textsc{Tenenbaum} und \textsc{Mordatch}}]{json_mode}
+[\textsc{Du} et~al. 2023] Y.~Du, S.~Li, A.~Torralba, J.~B. Tenenbaum und
+  I.~Mordatch.
+\newblock \textbf{Improving Factuality and Reasoning in Language Models through
+  Multiagent Debate}.
+\newblock arXiv preprint arXiv:2305.14325, 2023.
+
+\bibitem[{\textsc{Google}(2024)}]{langextract}
+[\textsc{Google}] \textbf{LangExtract: A Python library for extracting
+  structured information from unstructured text}.
+
+\bibitem[{\textsc{He} et~al.(2017)\textsc{He}, \textsc{Gkioxari},
+  \textsc{Doll{\'a}r} und \textsc{Girshick}}]{matterport_maskrcnn}
+[\textsc{He} et~al. 2017] K.~He, G.~Gkioxari, P.~Doll{\'a}r und R.~Girshick.
+\newblock \textbf{Mask {R-CNN}}.
+\newblock In: Proceedings of the IEEE International Conference on Computer
+  Vision, 2017, pp. 2961--2969.
+
+\bibitem[{\textsc{Hinton} et~al.(2015)\textsc{Hinton}, \textsc{Vinyals} und
+  \textsc{Dean}}]{knowledge_distill}
+[\textsc{Hinton} et~al. 2015] G.~Hinton, O.~Vinyals und J.~Dean.
+\newblock \textbf{Distilling the Knowledge in a Neural Network}.
+\newblock 2015, In: NIPS Deep Learning and Representation Learning Workshop.
+
+\bibitem[{\textsc{Houlsby} et~al.(2019)\textsc{Houlsby}, \textsc{Giurgiu},
+  \textsc{Jastrzebski}, \textsc{Morrone}, \textsc{de~Laroussilhe},
+  \textsc{Gesmundo}, \textsc{Attariyan} und \textsc{Gelly}}]{peft_houlsby}
+[\textsc{Houlsby} et~al. 2019] N.~Houlsby, A.~Giurgiu, S.~Jastrzebski,
+  B.~Morrone, Q.~de~Laroussilhe, A.~Gesmundo, M.~Attariyan und S.~Gelly.
+\newblock \textbf{Parameter-Efficient Transfer Learning for {NLP}}.
+\newblock In: Proceedings of the 36th International Conference on Machine
+  Learning (ICML), 2019, pp. 2790--2799.
+
+\bibitem[{\textsc{Hu} et~al.(2021)\textsc{Hu}, \textsc{Shen}, \textsc{Wallis},
+  \textsc{Allen-Zhu}, \textsc{Li}, \textsc{Wang}, \textsc{Wang} und
+  \textsc{Chen}}]{lora}
+[\textsc{Hu} et~al. 2021] E.~J. Hu, Y.~Shen, P.~Wallis, Z.~Allen-Zhu, Y.~Li,
+  S.~Wang, L.~Wang und W.~Chen.
+\newblock \textbf{{LoRA}: Low-Rank Adaptation of Large Language Models}.
+\newblock arXiv preprint arXiv:2106.09685, 2021.
+
+\bibitem[{\textsc{Huang} et~al.(2022)\textsc{Huang}, \textsc{Lv}, \textsc{Cui},
+  \textsc{Lu} und \textsc{Wei}}]{layoutlmv3}
+[\textsc{Huang} et~al. 2022] Y.~Huang, T.~Lv, L.~Cui, Y.~Lu und F.~Wei.
+\newblock \textbf{{LayoutLMv3}: Pre-training for Document {AI} with Unified
+  Text and Image Masking}.
+\newblock In: Proceedings of the 30th ACM International Conference on
+  Multimedia, 2022, pp. 4083--4091.
+
+\bibitem[{\textsc{Kim} et~al.(2022)\textsc{Kim}, \textsc{Hong}, \textsc{Yim},
+  \textsc{Nam}, \textsc{Park}, \textsc{Yim}, \textsc{Hwang}, \textsc{Yun},
+  \textsc{Han} und \textsc{Park}}]{donut}
+[\textsc{Kim} et~al. 2022] G.~Kim, T.~Hong, M.~Yim, J.~Nam, J.~Park, J.~Yim,
+  W.~Hwang, S.~Yun, D.~Han und S.~Park.
+\newblock \textbf{OCR-free Document Understanding Transformer}.
+\newblock European Conference on Computer Vision, 2022.
+
+\bibitem[{\textsc{Lewis} et~al.(2020)\textsc{Lewis}, \textsc{Perez},
+  \textsc{Piktus}, \textsc{Petroni}, \textsc{Karpukhin}, \textsc{Goyal},
+  \textsc{K\"{u}ttler}, \textsc{Lewis}, \textsc{Yih}, \textsc{Rockt\"{a}schel}
+  et~al.}]{rag_lewis}
+[\textsc{Lewis} et~al. 2020] P.~Lewis, E.~Perez, A.~Piktus, F.~Petroni,
+  V.~Karpukhin, N.~Goyal, H.~K\"{u}ttler, M.~Lewis, W.-t. Yih,
+  T.~Rockt\"{a}schel et~al.
+\newblock \textbf{Retrieval-Augmented Generation for Knowledge-Intensive {NLP}
+  Tasks}.
+\newblock In: Advances in Neural Information Processing Systems (NeurIPS),
+  Vol.~33, 2020, pp. 9459--9474.
+
+\bibitem[{\textsc{Li} et~al.(2020)\textsc{Li}, \textsc{Xu}, \textsc{Cui},
+  \textsc{Huang}, \textsc{Wei}, \textsc{Li} und \textsc{Zhou}}]{docbank}
+[\textsc{Li} et~al. 2020] M.~Li, Y.~Xu, L.~Cui, S.~Huang, F.~Wei, Z.~Li und
+  M.~Zhou.
+\newblock \textbf{{DocBank}: A Benchmark Dataset for Document Layout Analysis}.
+\newblock In: Proceedings of the 28th International Conference on Computational
+  Linguistics (COLING), 2020, pp. 949--960.
+
+\bibitem[{\textsc{Lv} et~al.(2024)\textsc{Lv}, \textsc{Xu}, \textsc{Zhao},
+  \textsc{Wang}, \textsc{Wei}, \textsc{Cui}, \textsc{Du}, \textsc{Dang} und
+  \textsc{Liu}}]{rtdetr_lv}
+[\textsc{Lv} et~al. 2024] W.~Lv, S.~Xu, Y.~Zhao, G.~Wang, J.~Wei, C.~Cui,
+  Y.~Du, Q.~Dang und Y.~Liu.
+\newblock \textbf{{DETRs} Beat {YOLOs} on Real-time Object Detection}.
+\newblock In: Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition, 2024, pp. 16965--16974.
+
+\bibitem[{\textsc{Ma} et~al.(2022)\textsc{Ma}, \textsc{Zhong}, \textsc{Zhang}
+  et~al.}]{docai_survey}
+[\textsc{Ma} et~al. 2022] C.~Ma, Z.~Zhong, Z.~Zhang et~al.
+\newblock \textbf{A Survey on Document Image Understanding: Reading Order,
+  Information Extraction and Beyond}.
+\newblock arXiv preprint arXiv:2207.14350, 2022.
+
+\bibitem[{\textsc{Mathew} et~al.(2021)\textsc{Mathew}, \textsc{Karatzas} und
+  \textsc{Jawahar}}]{docvqa}
+[\textsc{Mathew} et~al. 2021] M.~Mathew, D.~Karatzas und C.~V. Jawahar.
+\newblock \textbf{DocVQA: A Dataset for VQA on Document Images}.
+\newblock In: Proceedings of the IEEE/CVF Winter Conference on Applications of
+  Computer Vision (WACV), 2021, pp. 2200--2209.
+
+\bibitem[{\textsc{{Meta AI}}(2024)}]{llama3_vision}
+[\textsc{{Meta AI}}] \textbf{Llama 3 Vision Models: Open-weights visual
+  reasoning}.
+\newblock \url{https://ai.meta.com/blog/llama-3-2-vision-open-weights/}.
+
+\bibitem[{\textsc{{Mindee}}(2021)}]{doctr}
+[\textsc{{Mindee}} 2021] {Mindee}.
+\newblock \textbf{{docTR}: Document Text Recognition}.
+\newblock 2021, In: GitHub Repository.
+\newblock \url{https://github.com/mindee/doctr}.
+
+\bibitem[{\textsc{O'Gorman}(1993)}]{xycut_ogorman}
+[\textsc{O'Gorman} 1993] L.~O'Gorman.
+\newblock \textbf{The document spectrum for page layout analysis}.
+\newblock In: IEEE Transactions on Pattern Analysis and Machine Intelligence,
+  Vol.~15, pp. 1162--1173. 1993, IEEE.
+
+\bibitem[{\textsc{{OpenAI}}(2023)}]{gpt4v}
+[\textsc{{OpenAI}} 2023] {OpenAI}.
+\newblock \textbf{{GPT-4} Technical Report}.
+\newblock Tech. rep., OpenAI, 2023.
+\newblock ArXiv preprint arXiv:2303.08774.
+
+\bibitem[{\textsc{{Qwen Team}}(2024{\natexlab{a}})}]{qwen25}
+[\textsc{{Qwen Team}} 2024] {Qwen Team}.
+\newblock \textbf{{Qwen2.5} Technical Report}.
+\newblock arXiv preprint arXiv:2412.15115, 2024{\natexlab{a}}.
+
+\bibitem[{\textsc{{Qwen Team}}(2024{\natexlab{b}})}]{qwen25_vl}
+[\textsc{{Qwen Team}} 2024] {Qwen Team}.
+\newblock \textbf{{Qwen2.5-VL} Technical Report}.
+\newblock arXiv preprint arXiv:2412.15115, 2024{\natexlab{b}}.
+
+\bibitem[{\textsc{Redmon} et~al.(2016)\textsc{Redmon}, \textsc{Divvala},
+  \textsc{Girshick} und \textsc{Farhadi}}]{yolo}
+[\textsc{Redmon} et~al. 2016] J.~Redmon, S.~Divvala, R.~Girshick und
+  A.~Farhadi.
+\newblock \textbf{You only look once: Unified, real-time object detection}.
+\newblock In: Proceedings of the IEEE conference on computer vision and pattern
+  recognition, 2016, pp. 779--788.
+
+\bibitem[{\textsc{Singer-Vine}(2020)}]{pdfplumber}
+[\textsc{Singer-Vine}] \textbf{pdfplumber: Plumb a {PDF} for detailed
+  information about each text character, rectangle, and line}.
+\newblock \url{https://github.com/jsvine/pdfplumber}.
+
+\bibitem[{\textsc{Smith}(2007)}]{tesseract}
+[\textsc{Smith} 2007] R.~Smith.
+\newblock \textbf{An Overview of the Tesseract {OCR} Engine}.
+\newblock Ninth International Conference on Document Analysis and Recognition
+  (ICDAR 2007), pp. 629--633, 2007.
+
+\bibitem[{\textsc{Smock} et~al.(2022)\textsc{Smock}, \textsc{Pesala} und
+  \textsc{Abraham}}]{tatr}
+[\textsc{Smock} et~al. 2022] B.~Smock, R.~Pesala und R.~Abraham.
+\newblock \textbf{{PubTables-1M}: Towards Comprehensive Table Extraction from
+  Unstructured Documents}.
+\newblock In: Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition, 2022, pp. 4634--4642.
+
+\bibitem[{\textsc{Team}(2024)}]{docling}
+[\textsc{Team} 2024] D.~S. Team.
+\newblock \textbf{Docling Technical Report}.
+\newblock Tech. rep., IBM Research, 2024.
+
+\bibitem[{\textsc{Tillet} et~al.(2019)\textsc{Tillet}, \textsc{Kung} und
+  \textsc{Cox}}]{triton}
+[\textsc{Tillet} et~al. 2019] P.~Tillet, H.~T. Kung und D.~Cox.
+\newblock \textbf{Triton: an intermediate language and compiler for tiled
+  neural network computations}.
+\newblock In: Proceedings of the 3rd ACM SIGPLAN International Workshop on
+  Machine Learning and Programming Languages, 2019, pp. 10--19.
+
+\bibitem[{\textsc{{Unsloth AI}}(2023)}]{unsloth}
+[\textsc{{Unsloth AI}}] \textbf{Unsloth: Fast LLM base training and
+  finetuning}.
+\newblock \url{https://github.com/unslothai/unsloth}.
+
+\bibitem[{\textsc{Wei} et~al.(2022)\textsc{Wei}, \textsc{Wang},
+  \textsc{Schuurmans}, \textsc{Bosma}, \textsc{Xia}, \textsc{Chi}, \textsc{Le}
+  und \textsc{Zhou}}]{chain_of_thought}
+[\textsc{Wei} et~al. 2022] J.~Wei, X.~Wang, D.~Schuurmans, M.~Bosma, F.~Xia,
+  E.~Chi, Q.~V. Le und D.~Zhou.
+\newblock \textbf{Chain-of-Thought Prompting Elicits Reasoning in Large
+  Language Models}.
+\newblock In: Advances in Neural Information Processing Systems (NeurIPS),
+  Vol.~35, 2022, pp. 24824--24837.
+
+\bibitem[{\textsc{Zhao} et~al.(2024)\textsc{Zhao}, \textsc{Wang},
+  \textsc{Jiang} et~al.}]{doclayout_yolo}
+[\textsc{Zhao} et~al. 2024] Z.~Zhao, H.~Wang, P.~Jiang et~al.
+\newblock \textbf{{DocLayout-YOLO}: Enhancing Document Layout Analysis through
+  Diverse Synthetic Data and Global-to-Local Adaptive Perception}.
+\newblock arXiv preprint arXiv:2410.12628, 2024.
+
+\bibitem[{\textsc{Zhong} et~al.(2019)\textsc{Zhong}, \textsc{Tang} und
+  \textsc{Yepes}}]{publaynet}
+[\textsc{Zhong} et~al. 2019] X.~Zhong, J.~Tang und A.~J. Yepes.
+\newblock \textbf{{PubLayNet}: Largest Dataset ever for Document Layout
+  Analysis}.
+\newblock In: 2019 International Conference on Document Analysis and
+  Recognition (ICDAR), pp. 1015--1022. 2019, IEEE.
+
+\end{thebibliography}

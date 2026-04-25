@@ -1,7 +1,7 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusion}
 
-This thesis has presented a robust, multi-modal ingestion pipeline specifically designed to resolve the structural complexities of industrial Visually Rich Documents (VRDs). By decoupling the document intelligence problem into specialized layout, routing, and extraction layers, the system achieves a degree of precision and context-preservation that baseline Vision-Language Models (VLMs) and legacy OCR engines cannot match.
+This thesis has presented a reliable, multi-modal ingestion pipeline specifically designed to resolve the structural complexities of industrial Visually Rich Documents (VRDs). By decoupling the document intelligence problem into specialized layout, routing, and extraction layers, the system achieves a degree of precision and context-preservation that baseline Vision-Language Models (VLMs) and legacy OCR engines cannot match.
 
 \section{Summary of Contributions}
 \label{sec:summary}
@@ -12,7 +12,7 @@ The following key technical contributions were established:
     
     \item \textbf{Algorithmic Routing and Structured Extraction:} The development of an intelligent scoring router, based on vector line density and gap ratios, allows the pipeline to dynamically dispatch tabular regions to specialized extractors. The transition to Pydantic-validated JSON extraction provides the deterministic schema adherence required for enterprise-grade automation.
     
-    \item \textbf{Semantic Pre-Masking for TSR:} The introduction of a novel pre-masking algorithm resolves the chronic failure state of Table Structure Recognition (TSR) systems. By surgically obscuring embedded engineering schematics from the image tensor, the pipeline effectively eliminates structural hallucinations.
+    \item \textbf{Semantic Pre-Masking for TSR:} The introduction of a new pre-masking algorithm resolves the chronic failure state of Table Structure Recognition (TSR) systems. By surgically obscuring embedded engineering schematics from the image tensor, the pipeline effectively eliminates structural hallucinations.
     
     \item \textbf{Hierarchical Knowledge Graphs (HKG):} The 3-pass HKG construction algorithm preserves the semantic and topological "connective tissue" of the document. The resulting representation, enriched with hierarchical breadcrumbs and spatial links, provides unambiguous semantic provenance for downstream Retrieval-Augmented Generation (RAG) applications.
     
@@ -27,13 +27,13 @@ The following key technical contributions were established:
 While the current pipeline addresses the foundational challenges of industrial document intelligence, several future directions offer substantial potential for further improvement:
 
 \subsection{Distillation of Massive Scale Models}
-While the current framework robustly utilizes the optimized Qwen2.5-VL \citep{qwen25} parameters at the edge, scaling the distillation framework to massive capacity models (e.g., 72B parameter architectures) when localized VRAM bounds expand offers immense promise. Preliminary experiments suggest that scaling the inherent parameter density proportionally enhances visual patch resolution limit comprehension for extremely dense engineering matrices.
+While the current framework reliably uses the optimized Qwen2.5-VL \citep{qwen25} parameters at the edge, scaling the distillation framework to massive capacity models (e.g., 72B parameter architectures) when localized VRAM bounds expand shows strong potential. Preliminary experiments suggest that scaling the inherent parameter density proportionally enhances visual patch resolution limit comprehension for extremely dense engineering matrices.
 
 \subsection{Adaptive Resolution and 4K Vision Encoders}
 Industrial schematics often contain fine-grained textual annotations that are lost at the standard $1024 \times 1024$ input resolution. Future iterations of the pipeline could implement an "adaptive resolution" layer that detects high-density regions and re-processes them through secondary, higher-resolution visual encoders (e.g., InternVL-2.5) to capture molecular-level details in engineering drawings.
 
 \subsection{Self-Correction via Multi-Agent Auditing}
-While the current Extraction Agent is highly performant under Pydantic constraints, integrating a multi-agent self-correction loop (where an independent "Auditor Agent" reviews the populated database records against the raw Markdown breadcrumbs and provides natural language feedback iteratively) could theoretically push "first-pass" extraction success rates to absolute perfection.
+While the current Extraction Agent is highly performant under Pydantic constraints, integrating a multi-agent self-correction loop (where an independent "Auditor Agent" reviews the populated database records against the raw Markdown breadcrumbs and provides natural language feedback iteratively) could further improve first-pass extraction accuracy.
 
 \section{Final Conclusion}
-The transformation of unstructured industrial knowledge into machine-readable intelligence is a critical prerequisite for the next generation of autonomous engineering workflows. This thesis provides a formal technical framework for achieving this transformation through specialized, graph-native document ingestion. By resolving the hallucination problem and preserving semantic context, the proposed architecture offers a scalable and robust pathway for enterprise-grade document intelligence.
+The transformation of unstructured industrial knowledge into machine-readable intelligence is a necessary step toward the next generation of automated engineering workflows. This thesis provides a formal technical framework for achieving this transformation through specialized, graph-native document ingestion. By resolving the hallucination problem and preserving semantic context, the proposed architecture provides a practical and reliable pathway for enterprise-grade document intelligence.

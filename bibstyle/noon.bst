@@ -1058,7 +1058,7 @@ FUNCTION {booklet}
 
 FUNCTION {inbook}
 { output.bibitem
-  "[" write$  short.list write$ " " write$ format.date "year" output.check write$ "] " write$
+  "[" write$  short.list write$ " " year * write$ "] " write$
   author empty$
     { format.editors "author and editor" output.check
       editor format.key output
@@ -1098,7 +1098,7 @@ FUNCTION {inbook}
 
 FUNCTION {incollection}
 { output.bibitem
-  "[" write$  short.list write$ " " write$ format.date "year" output.check write$ "] " write$
+  "[" write$  short.list write$ " " year * write$ "] " write$
   format.authors "author" output.check
   author format.key output
   new.block
@@ -1125,7 +1125,7 @@ FUNCTION {incollection}
 }
 FUNCTION {inproceedings}
 { output.bibitem
-  "[" write$  short.list write$ " " write$ format.date "year" output.check write$ "] " write$
+  "[" write$  short.list write$ " " year * write$ "] " write$
   format.authors "author" output.check
   author format.key output
   new.block

@@ -1,7 +1,7 @@
 \chapter{Layout Intelligence and Reading Order}
 \label{ch:layout_reading}
 
-The fundamental bottleneck in transforming industrial Visually Rich Documents (VRDs) into hierarchical Markdown is the catastrophic loss of spatial geometry during raw text extraction. Commercial OCR engines operate primarily via horizontal sweeping, inherently destroying the semantic flow of multi-column layouts, tables, and nested footnotes. 
+The fundamental bottleneck in transforming industrial Visually Rich Documents (VRDs) into hierarchical Markdown is the severe loss of spatial geometry during raw text extraction. Commercial OCR engines operate primarily via horizontal sweeping, inherently destroying the semantic flow of multi-column layouts, tables, and nested footnotes. 
 
 This chapter details the foundational architecture of the High-Fidelity Ingestion Pipeline developed within this research. The methodology is executed in three critical geometric phases: bounding box prediction via DocLayout-YOLO \citep{doclayout_yolo} (a real-time detection transformer derivative), native primitive extraction via direct PDF stream parsing \citep{pdfplumber}, and topological reading-order verification utilizing deterministic Recursive XY-Cut whitespace projections \citep{xycut_ogorman} and VLM-based continuity scoring.
 
@@ -10,7 +10,7 @@ This chapter details the foundational architecture of the High-Fidelity Ingestio
 
 To ensure deterministic stability across massive engineering datasheets without relying on a monolithic Language Model, the framework utilizes an ensemble pipeline. Specialized visual tasks are delegated to highly local, memory-efficient models.
 
-Figure \ref{fig:architecture_flowchart} illustrates the massive, end-to-end data flow of the ingestion phase, leading directly into the Routing and Masking layers discussed in subsequent chapters.
+Figure \ref{fig:architecture_flowchart} illustrates the full, end-to-end data flow of the ingestion phase, leading directly into the Routing and Masking layers discussed in subsequent chapters.
 
 \begin{figure}[htbp]
 \centering
@@ -74,26 +74,47 @@ Figure \ref{fig:doclayout_data_flow} maps the explicit dimensional transformatio
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=1.5cm,
-    box/.style={rectangle, draw, thick, align=center, minimum width=3cm, minimum height=1cm, rounded corners=0.1cm},
+    node distance=1.0cm and 2.5cm,
+    box/.style={rectangle, draw, thick, align=center, minimum width=4cm, minimum height=1cm, rounded corners=0.1cm},
     arrow/.style={->, thick, >=stealth}
 ]
 
-\node[box, fill=gray!10] (pdf) {Raw PDF Page\\(Vector)};
-\node[box, right=1.2cm of pdf, fill=red!10] (raster) {Rasterization\\300 DPI RGB};
-\node[box, right=1.2cm of raster, fill=orange!10] (pad) {Letterbox Padding\\(Preserve Ratio)};
-\node[box, below=1cm of pad, fill=blue!10] (tensor) {Normalized Tensor\\$1024 \times 1024 \times 3$};
-\node[box, left=1.2cm of tensor, fill=cyan!10] (yolo) {DocLayout-YOLO\\Inference Phase};
-\node[box, left=1.2cm of yolo, fill=green!10] (output) {Proposal Set $B$\\$(x, y, C_i)$};
+\node[box, fill=gray!10] (pdf) {Raw PDF Page (Vector)};
 
-\draw[arrow] (pdf) -- (raster);
-\draw[arrow] (raster) -- (pad);
-\draw[arrow] (pad) -- (tensor);
+% Visual Branch
+\node[box, below left=1cm and -0.5cm of pdf, fill=red!10] (raster) {Rasterization\\(300 DPI RGB)};
+\node[box, below=0.8cm of raster, fill=orange!10] (tensor) {Normalized Tensor\\($1024 \times 1024$)};
+\node[box, below=0.8cm of tensor, fill=cyan!10] (yolo) {DocLayout-YOLO\\Inference Phase};
+\node[box, below=0.8cm of yolo, fill=green!10] (output) {Geometric Boxes\\($x, y, C_i$)};
+
+% Native Branch
+\node[box, below right=1cm and -0.5cm of pdf, fill=purple!10] (plumber) {Native Extraction\\(\texttt{pdfplumber})};
+\node[box, below=0.8cm of plumber, fill=violet!10] (font) {Font Analyzer\\(Weight, Size, RGB)};
+\node[box, below=0.8cm of font, fill=magenta!10] (text) {Structural Tokens\\\& Metadata};
+
+% Merge
+\node[box, below right=1.2cm and -0.5cm of output, fill=yellow!10] (merge) {Hybrid Geometric\\Merging (XY-Cut)};
+
+% VLM
+\node[box, below=0.8cm of merge, fill=teal!10] (vlm) {VLM Continuity\\Referee};
+
+\draw[arrow] (pdf) -| (raster);
+\draw[arrow] (pdf) -| (plumber);
+
+\draw[arrow] (raster) -- (tensor);
 \draw[arrow] (tensor) -- (yolo);
 \draw[arrow] (yolo) -- (output);
 
+\draw[arrow] (plumber) -- (font);
+\draw[arrow] (font) -- (text);
+
+\draw[arrow] (output) |- (merge);
+\draw[arrow] (text) |- (merge);
+
+\draw[arrow] (merge) -- (vlm);
+
 \end{tikzpicture}
-\caption{Data Flow Diagram detailing the spatial and tensor transformations required to process an unstructured page into normalized bounding box arrays.}
+\caption{Dual-Branch Data Flow Diagram. Instead of relying purely on visual representation, the pipeline splits the unstructured page into a visual branch (predicting normalized geometric arrays via DocLayout-YOLO) and a native textual branch (extracting deterministic structural tokens). These streams are mathematically merged and structurally verified by the VLM.}
 \label{fig:doclayout_data_flow}
 \end{figure}
 
@@ -110,7 +131,7 @@ While visual layout models are effective for geometric boundaries, they often st
 \subsection{FontAnalyzer and Stylesheet Hypotheses}
 While `pdfplumber` acts as the low-level data extraction mechanism providing raw character matrices, the pipeline employs a distinct, custom \textit{FontAnalyzer} algorithm to make structural sense of that data. For each detected text region localized by the visual backbone, the FontAnalyzer mathematically iterates over the nested `pdfplumber` character stream to extract the dominant "font signature," comprising the exact TrueType font name, absolute string size, boldness encoding, and RGB color values \citep{pdfplumber}. By analyzing the frequency distribution of these signatures across the preamble of a document, the pipeline auto-generates a \textit{DocumentStyleSheet} using Pydantic JSON schemas \citep{pydantic}. 
 
-This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as generic "Text" by the visual model is automatically promoted to a structural "Heading" or "Title" if its font size exceeds 12pt and it possesses a bold weight flag, or if it consists entirely of uppercase characters within a highly specific width tolerance. This hybrid approach leverages the geometric strengths of modern vision transformers \citep{vit} while maintaining the pixel-perfect semantic precision afforded by native document metadata.
+This stylesheet allows for deterministic \textbf{Region Promotion}. For instance, a region initially classified as generic "Text" by the visual model is automatically promoted to a structural "Heading" or "Title" if its font size exceeds 12pt and it possesses a bold weight flag, or if it consists entirely of uppercase characters within a highly specific width tolerance. This hybrid approach builds on the geometric strengths of modern vision transformers \citep{vit} while maintaining the pixel-perfect semantic precision afforded by native document metadata.
 
 \section{VLM reading-order Verification}
 \label{sec:vlm_verification}

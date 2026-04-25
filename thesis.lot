@@ -1,0 +1,21 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {7.1}{\ignorespaces Comparison of layout detection performance. DocLayout-YOLO achieves superior spatial precision and nearly 5x lower latency due to its optimized transformer-detector architecture.}}{53}{table.caption.14}%
+\contentsline {table}{\numberline {7.2}{\ignorespaces Optical-to-Markdown fidelity on complex industrial tables. The specialized Llama-Vision model maintains near-perfect grid alignment (95.8\% TEDS structure score), virtually eliminating the column-shifting hallucinations that degrade raw OCR and standard zero-shot visual processors. \textit {Note: For Tesseract OCR, the flat text output was heuristically bounded into a single-column matrix to allow baseline TEDS computation, natively penalizing its lack of grid awareness.}}}{55}{table.caption.16}%
+\contentsline {table}{\numberline {7.3}{\ignorespaces Extraction fidelity across 500 complex industrial table regions. ``Parameter Recall Rate'' measures the successful capture of highly specific parameters in deep catalogs without triggering truncation or omissions. ``JSON Validation Pass Rate'' notes whether the output compiled into valid schemas without syntax errors caused by token crashes. \textit {Note: Because Docling outputs a proprietary JSON structure, its output was programmatically mapped to the target Pydantic schema keys to ensure a fair 1:1 validation comparison.}}}{56}{table.caption.17}%
+\contentsline {table}{\numberline {7.4}{\ignorespaces Ablation study demonstrating the resolution of topological hallucination via early-stage tensor redaction.}}{60}{table.caption.19}%
+\contentsline {table}{\numberline {7.5}{\ignorespaces Ablation results comparing 1-Pass direct extraction versus the proposed 2-Pass decoupled strategy.}}{61}{table.caption.21}%
+\contentsline {table}{\numberline {7.6}{\ignorespaces Performance impact of bypassing the Algorithmic Routing Engine in favor of monolithic VLM execution.}}{62}{table.caption.22}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

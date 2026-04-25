@@ -4,20 +4,20 @@
 \section{Motivation}
 \label{sec:motivation}
 
-The industrial sector relies extensively on visually rich documents (VRDs) \citep{docai_survey}, such as dense engineering datasheets and operating manuals, to communicate critical hardware specifications. These documents are characterized by formidable structural complexities, including embedded engineering graphs, multi-column tables, and hierarchical semantic dependencies. Historically, organizations have depended on manual data entry or simplistic Optical Character Recognition (OCR) to extract this information, leading to severe context loss and a bottleneck for enterprise digitization.
+The industrial sector relies extensively on visually rich documents (VRDs) \citep{docai_survey}, such as dense engineering datasheets and operating manuals, to communicate critical hardware specifications. These documents are marked by dense structural layouts, including embedded engineering graphs, multi-column tables, and hierarchical semantic dependencies. Historically, organizations have depended on manual data entry or simplistic Optical Character Recognition (OCR) to extract this information, leading to severe context loss and a bottleneck for enterprise digitization.
 
 The recent emergence of Vision-Language Models (VLMs) offers a powerful mechanism for automated document intelligence via zero-shot reasoning \citep{gpt4v, qwen_vl}. However, when deployed against complex industrial documents, both traditional Layout parsing and modern VLMs exhibit severe failure states. Traditional parsing often destroys the reading order. Conversely, VLMs frequently suffer from "structural hallucination" \citep{docvqa}, a phenomenon where the model misinterprets the internal axes of an embedded engineering graph as tabular grid lines, recursively generating false data to satisfy the perceived geometric constraints, or crash due to maximum token limits when attempting to process ultra-dense hardware tables.
 
-To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. While the ultimate objective of enterprise digitization is to produce structured, machine-readable JSON payloads, attempting to map raw images directly into rigid JSON schemas frequently triggers catastrophic token exhaustion in generative models. Therefore, this thesis motivates the use of dense, visually representative Markdown as a necessary Intermediate Representation (IR). By first harvesting the document into high-density Markdown, the pipeline radically reduces the token burden, decoupling visual alignment from semantic logic.
+To enable true, automated intelligence, industrial PDFs must first be transformed into a hierarchical, mathematically rigid Markdown representation. While the ultimate objective of enterprise digitization is to produce structured, machine-readable JSON payloads, attempting to map raw images directly into rigid JSON schemas frequently triggers catastrophic token exhaustion in generative models. Therefore, this thesis motivates the use of dense, visually representative Markdown as a necessary Intermediate Representation (IR). By first harvesting the document into high-density Markdown, the pipeline sharply reduces the token burden, decoupling visual alignment from semantic logic.
 
-Furthermore, industrial environments present unique deployment constraints. Technical datasheets frequently contain proprietary intellectual property, precluding the use of cloud-based APIs (e.g., OpenAI's GPT-4o) due to data privacy regulations \citep{docling}. Concurrently, the domain volatility of industrial equipment means that pre-defining rigid database schemas is impossible; a dynamic schema discovery mechanism is required. This thesis, therefore, restricts its hardware footprint to the capacity of a single consumer-grade 24 GB GPU, such as the NVIDIA RTX 3090, ensuring that the entire pipeline, from dynamic schema synthesis to dual-model reasoning, can execute entirely on secure edge servers.
+Industrial environments also impose strict deployment constraints. Technical datasheets frequently contain proprietary intellectual property, precluding the use of cloud-based APIs (e.g., OpenAI's GPT-4o) due to data privacy regulations \citep{docling}. Concurrently, the domain volatility of industrial equipment means that pre-defining rigid database schemas is impossible; a dynamic schema discovery mechanism is required. This thesis, therefore, restricts its hardware footprint to the capacity of a single consumer-grade 24 GB GPU, such as the NVIDIA RTX 3090, ensuring that the entire pipeline, from dynamic schema synthesis to dual-model reasoning, can execute entirely on secure edge servers.
 
 \section{Aim of this thesis}
 \label{sec:aim}
 
 This thesis addresses the limitations of mapping unstructured VRDs to structured data by proposing a novel, multi-modal ingestion framework. The primary objective is to engineer a deterministic pipeline that converts a complex industrial PDF into structural Markdown, eliminating visual hallucination loops.
 
-This objective is systematically achieved through the following technical contributions:
+This objective is met through the following technical contributions:
 
 \textbf{1. Ensemble Layout Detection and Verification:}
 This research evaluates the application of DocLayout-YOLO transformers \citep{doclayout_yolo} to isolate geometric document regions. Rather than relying on generative approximation, the pipeline employs a combination of native PDF primitive extraction and VLM-based reading order verification, providing high-fidelity spatial sequencing. 
@@ -41,7 +41,7 @@ An overview of this proposed architecture is illustrated in Figure \ref{fig:over
     arrow/.style={->, thick, >=stealth}
 ]
 
-\node[box, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Section 3.2)}};
+\node[box, fill=cyan!10] (layout) {\textbf{DocLayout-YOLO} \\ \& Topological Reading Order \\ \textit{(Sections 3.2 -- 3.5)}};
 \node[box, left=1.8cm of layout, fill=gray!10] (pdf) {Raw Industrial\\PDF Document};
 \node[box, right=1.8cm of layout, draw=none, fill=none] (phantom) {}; % Symmetric phantom node to center correctly
 \node[box, below=1.5cm of layout, fill=yellow!10] (router) {\textbf{Algorithmic Routing Engine} \\ Heuristic Geometric Scoring \\ \textit{(Section 4.1)}};

@@ -12,7 +12,7 @@ The Table Transformer (TATR) utilizes a Detection Transformer (DETR) architectur
 
 However, the purely visual mechanism driving TATR's success triggers catastrophic failure when processing multi-modal industrial datasheets. Consider an electrical specification table wherein the third column dynamically embeds a raster image of a wiring schematic. The schematic inherently contains thousands of high-contrast, linear graphic vectors representing wires, circuit terminals, and Cartesian testing boundaries.
 
-WhenTATR executes inference over the parent table bounding box, its convolutional kernels identically interpret the wiring vectors as legitimate structural table boundaries. This visual interference causes TATR to aggressively over-segment the table, hallucinating hundreds of chaotic, non-existent rows within the wiring schematic to mathematically conform to the diagram's geometry. This behavior totally destroys the legitimate cross-row alignment of the true tabular data.
+WhenTATR executes inference over the parent table bounding box, its convolutional kernels identically interpret the wiring vectors as legitimate structural table boundaries. This visual interference causes TATR to aggressively over-segment the table, hallucinating hundreds of chaotic, non-existent rows within the wiring schematic to mathematically conform to the diagram's geometry. This behavior breaks the legitimate cross-row alignment of the true tabular data.
 
 \section{The Semantic Pre-Masking Algorithm}
 \label{sec:pre_masking_logic}
@@ -64,12 +64,12 @@ y'_{max} &= \min(B_{table}.y_{max} - B_{table}.y_{min}, B_{figure}.y_{max} - B_{
 \node[above] at (12,4) {Masked Tensor $\mathbf{T}_{crop}'$};
 
 \end{tikzpicture}
-\caption{Geometric visualization of the Semantic Pre-Masking algorithm. Destructive optical obscuration totally eliminates highly-dense engineering schematic vectors prior to Table Transformer (TATR) object detection inference.}
+\caption{Geometric visualization of the Semantic Pre-Masking algorithm. Destructive optical obscuration removes dense engineering schematic vectors prior to Table Transformer (TATR) object detection inference.}
 \label{fig:semantic_masking}
 \end{figure}
 
 \subsection{Maximum-Intensity Tensor Obscuration}
-Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Literally translated, the algorithm completely wipes out all visual traces of the embedded figure from the table's image patch. Utilizing optimized OpenCV \citep{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is blasted with maximum-intensity pixel limits $(255, 255, 255)$, corresponding to true, opaque white in the RGB color space. 
+Upon calculating the precise bounding parameters of the internal schematic relative to the pixel crop $T_{crop}$, the algorithm executes destructive obscuration. Literally translated, the algorithm completely wipes out all visual traces of the embedded figure from the table's image patch. Utilizing optimized OpenCV \citep{opencv} geometric convolution arrays (\texttt{cv2.rectangle}), the exact tensor zone corresponding to the graphical image is overwritten with maximum-intensity pixel values $(255, 255, 255)$, corresponding to true, opaque white in the RGB color space. 
 
 For every sub-pixel coordinate $(x, y)$ residing within the calculated boundaries of the diagram, the original tensor intensity $T[x,y]$ is mathematically altered to true-white:
 
@@ -82,11 +82,11 @@ T_{crop}(x,y) & \text{otherwise}
 \end{equation}
 
 \subsection{Deterministic Grid Resolution}
-This mathematical intervention creates a pristine, functionally empty whitespace zone exactly where the dense engineering schematic previously resided. 
+This mathematical intervention creates a clean, empty whitespace region exactly where the dense engineering schematic previously resided. 
 
-When the obscured tensor $T_{crop}'$ is evaluated dynamically by TATR, the model functions flawlessly. With the deceptive graphical vectors physically masked, the detection transformer correctly relies purely on the structural grid constraints of the remaining table to predict exact row, column, and cell coordinate lists. 
+When the obscured tensor $T_{crop}'$ is evaluated dynamically by TATR, the model operates correctly. With the deceptive graphical vectors physically masked, the detection transformer correctly relies purely on the structural grid constraints of the remaining table to predict exact row, column, and cell coordinate lists. 
 
-This highly localized engineering solution definitively eliminates topological table hallucination entirely independent of unreliable LLM prompting. Conclusively, it enables the integration of state-of-the-art TSR grid mapping for industrial documents, populating structurally verified topological trees directly into the unified Markdown abstraction.
+This highly localized engineering solution eliminates topological table hallucination entirely independent of unreliable LLM prompting. This in turn enables the integration of state-of-the-art TSR grid mapping for industrial documents, populating structurally verified topological trees directly into the unified Markdown abstraction.
 
 \begin{algorithm}[H]
 \caption{Semantic Pre-Masking for TATR Interference}
@@ -150,7 +150,7 @@ The first pass maps the semantic bounding boxes derived from DocLayout-YOLO into
 
 To ensure consistency across documents with varying DPI or page dimensions, the pipeline implements a \textit{Recursive Geometry Normalization} phase. The raw pixel coordinates $(x, y)$ predicted by the $1024 \times 1024$ DocLayout-YOLO tensor are mathematically projected back to the foundational vector-space of the source PDF. This ensures that every node contains a deterministic spatial footprint $B = (x_{min}, y_{min}, x_{max}, y_{max})$ that remains stable during subsequent cross-page linking or database ingestion.
 
-Furthermore, this pass populates the initial metadata payload for each node, including the confidence score of the layout classifier and the detected font signature (via the FontAnalyzer described in Chapter~\ref{ch:layout_reading}). This atomic foundation is what enables the pipeline to maintain the "pixel-perfect" semantic link between the raw document and the final structured output.
+In addition, this pass populates the initial metadata payload for each node, including the confidence score of the layout classifier and the detected font signature (via the FontAnalyzer described in Chapter~\ref{ch:layout_reading}). This atomic foundation is what enables the pipeline to maintain the "pixel-perfect" semantic link between the raw document and the final structured output.
 
 \subsection{Pass 2: Spatial Linking and Caption Association}
 In the second pass, the pipeline executes a distance-weighted linking algorithm to associate figures and tables with their respective captions. Industrial documents often place captions below tables or above figures; the graph builder computes the vertical distance between \texttt{Caption} nodes and their nearest \texttt{Table} or \texttt{Figure} neighbors.
@@ -170,7 +170,7 @@ As the graph builder propagates through the document topology, it recursively pu
 \ENSURE Nodes with populated {\fontfamily{qcr}\selectfont breadcrumbs} property
 \STATE $ActiveBreadcrumbs \leftarrow []$
 \FOR{\textbf{each} $n \in Nodes$}
-    \IF{$n.type \IS \text{"Heading"}$}
+    \IF{$n.type == \text{"Heading"}$}
         \STATE $rank \leftarrow \text{GetHeadingRank}(n)$
         \STATE $\text{Remove}(ActiveBreadcrumbs, \text{items with rank} \ge rank)$
         \STATE $\text{Append}(ActiveBreadcrumbs, (n.content, rank))$
@@ -221,4 +221,4 @@ The convergence of the HKG and the extraction layers is finalized by the \textit
 The module operates at 24V DC.
 \end{verbatim}
 
-This mapping allows downstream RAG applications to perform a "Graph-to-Text" lookup. When an LLM retrieves a specific text chunk, the RAG system can query the Knowledge Graph for the chunk's parent breadcrumbs, associated image captions, or neighboring tables, drastically reducing hallucination by providing the model with a complete semantic neighborhood rather than an isolated fragment of text. Furthermore, the integrity of these atomic Markdown blocks ensures that the \textit{ExtractorAgent} (described in Chapter \ref{ch:routing_vlm}) can reliably enforce its dynamic Pydantic schemas, successfully linking geometric PDF primitives to highly structured JSON output.
+This mapping allows downstream RAG applications to perform a "Graph-to-Text" lookup. When an LLM retrieves a specific text chunk, the RAG system can query the Knowledge Graph for the chunk's parent breadcrumbs, associated image captions, or neighboring tables, sharply reducing hallucination by providing the model with a complete semantic neighborhood rather than an isolated fragment of text. Beyond this, the integrity of these atomic Markdown blocks ensures that the \textit{ExtractorAgent} (described in Chapter \ref{ch:routing_vlm}) can reliably enforce its dynamic Pydantic schemas, successfully linking geometric PDF primitives to highly structured JSON output.
