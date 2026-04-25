@@ -91,18 +91,18 @@ As visualized in Figure \ref{fig:learning_rate_curves}, both student models were
 
 \begin{figure}[htbp]
 \centering
-\begin{minipage}{0.48\textwidth}
+\begin{subfigure}{0.48\textwidth}
   \centering
   \includegraphics[width=\linewidth]{images/llama_learning_rate.png}
-  \caption{Llama-Vision 11B Learning Rate.}
+  \caption{Llama-Vision 11B.}
   \label{fig:llama_lr}
-\end{minipage}\hfill
-\begin{minipage}{0.48\textwidth}
+\end{subfigure}\hfill
+\begin{subfigure}{0.48\textwidth}
   \centering
   \includegraphics[width=\linewidth]{images/qwen_learning_rate.png}
-  \caption{Qwen2-VL 7B Learning Rate.}
+  \caption{Qwen2-VL 7B.}
   \label{fig:qwen_lr}
-\end{minipage}
+\end{subfigure}
 \caption{Learning rate schedules for the Dual-Student Architecture. Both models utilize a linear warmup phase followed by a cosine decay trajectory to stabilize LoRA weight updates.}
 \label{fig:learning_rate_curves}
 \end{figure}
