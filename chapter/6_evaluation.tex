@@ -41,9 +41,18 @@ DocLayout-YOLO (Ours) & \textbf{0.942} & \textbf{0.785} & \textbf{85} \\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{images/evaluation/yolo_bboxes.png}
-\caption{Visualization of DocLayout-YOLO output on a high-density industrial datasheet. Notice the precise bounding boxes cleanly separating tables, titles, and text blocks without overlap, resulting in the high mAP@.5:.95 scores.}
-\label{fig:yolo_bboxes}
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/Super_Complex_2-1.png}
+  \caption*{Raw structural PDF}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/layout_visualizations-1.png}
+  \caption*{DocLayout-YOLO Prediction}
+\end{minipage}
+\caption{Visual layout detection (Before vs After): Comparison of the raw engineering catalog page against the corresponding DocLayout-YOLO prediction tensors. The model cleanly encapsulates complex tables, pin-assignment figures, and multi-column text blocks, ensuring high mAP and spatial recall.}
+\label{fig:yolo_bboxes_comparison}
 \end{figure}
 
 As shown in Table \ref{tab:layout_comparison}, DocLayout-YOLO demonstrates a significant improvement in Mean Average Precision (mAP). The primary metric utilized is mAP@.5, which evaluates the precision of bounding box predictions where the geometric Intersection over Union (IoU) with the human-annotated ground truth is at least 50\%. Furthermore, mAP@.5:.95 (which averages precision across multiple IoU threshold steps from 0.5 to 0.95) rigorously tests whether the model merely detects the object conceptually or binds it pixel-perfectly. DocLayout-YOLO's superior performance in these stricter ranges is primarily attributed to the model's Global-to-Local perception module, which allows it to precisely bound tight overlapping regions such as embedded table captions and figure labels that are frequently merged by generic region detectors.
