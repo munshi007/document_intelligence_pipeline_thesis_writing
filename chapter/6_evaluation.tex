@@ -107,29 +107,36 @@ Avg. Tokens per Item & N/A & $\sim$20 & \textbf{$\sim$6} \\
 \label{tab:extraction_fidelity}
 \end{table}
 
-\begin{lstlisting}[language=bash, caption={Phase 1: High-fidelity Markdown extraction preserving structural grid markers.}, label={lst:raw_markdown}]
-<!-- page:1 -->
-Product-PDF for Article 7000-12121-2251000
-# M12 male 90 degrees A-cod. with cable
-PUR 5x0.34 gy UL/CSA 10m
-# ! NOTICE !
-PRODUCT IS DISCONTINUED.
-...
+\begin{lstlisting}[language=bash, caption={Phase 1: High-fidelity Markdown extraction preserving structural grid markers (Super\_Complex\_2).}, label={lst:raw_markdown}]
+# 4.6.2.40 Connection overview Cube67+ DIO16 IOL8 A/B E 8xM12 
+Art.-No. 56768
+
+**Pin-assignment**
+| IN (BUS) |  |  |
+| --- | --- | --- |
+|  | Pin 1 | 24 V UA/4 A |
+|  | Pin 2 | 24 V US/4 A |
+|  | Pin 3 | 0 V |
+|  | Pin 4 | BUS |
+|  | Pin 5 | BUS |
+|  | Pin 6 | 0 V |
 \end{lstlisting}
 
 \begin{lstlisting}[language=json, caption={Phase 2: Final JSON extraction with precise unit mapping and nested structural integrity.}, label={lst:structured_json}]
 {
-  "product_name": "M12 male 90 degrees A-cod. with cable",
-  "art_no": "7000-12121-2251000",
+  "product_name": "Cube67+ DIO16 IOL8 A/B E 8xM12",
+  "art_no": "56768",
   "manufacturer": "Murrelektronik",
-  "parameters": [
-    {
-      "name": "Tightening torque",
-      "value": "0.6",
-      "unit": "Nm"
-    },
-    { "name": "...", "value": "...", "unit": "..." }
-  ]
+  "connectors": {
+    "type": "M12 male connector",
+    "coding": "A-coded",
+    "pins": [
+      { "pin": "1", "assignment": "24 V UA/4 A" },
+      { "pin": "2", "assignment": "24 V US/4 A" },
+      { "pin": "3", "assignment": "0 V" },
+      { "pin": "...", "assignment": "..." }
+    ]
+  }
 }
 \end{lstlisting}
 
