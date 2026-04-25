@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.4.4)  26 APR 2026 01:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.4.4)  26 APR 2026 01:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1398,7 +1398,7 @@ Package epstopdf Info: Source file: <logos/OVGU_SIGN_druck.eps>
 converted-to.pdf logos/OVGU_SIGN_druck.eps>
 (epstopdf)             \includegraphics on input line 9.
 Package epstopdf Info: Output file is already uptodate.
-<logos/OVGU_SIGN_druck-eps-converted-to.pdf, id=380, 132.495pt x 46.1725pt>
+<logos/OVGU_SIGN_druck-eps-converted-to.pdf, id=384, 132.495pt x 46.1725pt>
 File: logos/OVGU_SIGN_druck-eps-converted-to.pdf Graphic file (type pdf)
 <use logos/OVGU_SIGN_druck-eps-converted-to.pdf>
 Package pdftex.def Info: logos/OVGU_SIGN_druck-eps-converted-to.pdf  used on in
@@ -1494,7 +1494,7 @@ Overfull \hbox (88.56233pt too wide) in paragraph at lines 63--64
  []
 
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6
-8.
+7.
 (/usr/share/texmf/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1502,28 +1502,18 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-LaTeX Font Info:    Calculating math sizes for size <11.826> on input line 68.
 LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
-(Font)              scaled to size 10.8799pt on input line 68.
+(Font)              scaled to size 9.19998pt on input line 67.
 LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
-(Font)              scaled to size 8.26865pt on input line 68.
-LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
-(Font)              scaled to size 6.528pt on input line 68.
+(Font)              scaled to size 6.99199pt on input line 67.
 LaTeX Font Info:    Font shape `U/futm/m/n' will be
-(Font)              scaled to size 10.8799pt on input line 68.
+(Font)              scaled to size 9.19998pt on input line 67.
 LaTeX Font Info:    Font shape `U/futm/m/n' will be
-(Font)              scaled to size 8.26865pt on input line 68.
-LaTeX Font Info:    Font shape `U/futm/m/n' will be
-(Font)              scaled to size 6.528pt on input line 68.
-Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/11.82
-6'
-(microtype)             (new value: 11.826pt) on input line 68.
-Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/8.987
-69'
-(microtype)             (new value: 8.98769pt) on input line 68.
-Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/7.095
-67'
-(microtype)             (new value: 7.09567pt) on input line 68.
+(Font)              scaled to size 6.99199pt on input line 67.
+Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/10'
+(microtype)             (new value: 10.0pt) on input line 67.
+Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/7.6'
+(microtype)             (new value: 7.6pt) on input line 67.
 LaTeX Font Info:    Trying to load font information for TS1+futs on input line 
 78.
 
@@ -1534,11 +1524,8 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `futs' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-
-Underfull \vbox (badness 1755) has occurred while \output is active []
-
- [3{/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}] [4]) [5] [6]
-(./chapter/1_background.tex
+ [3] [4{/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}]) [5] [6] (./chapter/1_b
+ackground.tex
 Chapter 2.
 [7
 
@@ -1548,6 +1535,30 @@ Overfull \hbox (54.96484pt too wide) in paragraph at lines 52--53
  []
 
 [8] [9] [10] [11]
+LaTeX Font Info:    Calculating math sizes for size <11.826> on input line 101.
+
+LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
+(Font)              scaled to size 10.8799pt on input line 101.
+LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
+(Font)              scaled to size 8.26865pt on input line 101.
+LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
+(Font)              scaled to size 6.528pt on input line 101.
+LaTeX Font Info:    Font shape `U/futm/m/n' will be
+(Font)              scaled to size 10.8799pt on input line 101.
+LaTeX Font Info:    Font shape `U/futm/m/n' will be
+(Font)              scaled to size 8.26865pt on input line 101.
+LaTeX Font Info:    Font shape `U/futm/m/n' will be
+(Font)              scaled to size 6.528pt on input line 101.
+Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/11.82
+6'
+(microtype)             (new value: 11.826pt) on input line 101.
+Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/8.987
+69'
+(microtype)             (new value: 8.98769pt) on input line 101.
+Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/7.095
+67'
+(microtype)             (new value: 7.09567pt) on input line 101.
+
 Overfull \hbox (9.94083pt too wide) in paragraph at lines 101--102
 \T1/futs/m/n/11.826 (-20) bidi-rec-tional self-attention math-e-mat-i-cal for-m
 u-la-tion ($\FML/futmi/m/it/11.826 Attention\T1/futs/m/n/11.826 (-20) (\FML/fut
@@ -1616,22 +1627,10 @@ Underfull \vbox (badness 1127) has occurred while \output is active []
  [25
 
 ]
-LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
-(Font)              scaled to size 9.19998pt on input line 52.
-LaTeX Font Info:    Font shape `FMX/futm/m/n' will be
-(Font)              scaled to size 6.99199pt on input line 52.
 LaTeX Font Info:    Font shape `T1/futs/bx/n' in size <10> not available
 (Font)              Font shape `T1/futs/b/n' tried instead on input line 52.
 LaTeX Font Info:    Font shape `T1/futs/bx/n' in size <7.6> not available
 (Font)              Font shape `T1/futs/b/n' tried instead on input line 52.
-LaTeX Font Info:    Font shape `U/futm/m/n' will be
-(Font)              scaled to size 9.19998pt on input line 52.
-LaTeX Font Info:    Font shape `U/futm/m/n' will be
-(Font)              scaled to size 6.99199pt on input line 52.
-Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/10'
-(microtype)             (new value: 10.0pt) on input line 52.
-Package microtype Info: Fixing zero \fontdimen 6 for font `U/rcjhbltx/m/n/7.6'
-(microtype)             (new value: 7.6pt) on input line 52.
 
 Overfull \hbox (40.07928pt too wide) in paragraph at lines 54--55
  [][] 
@@ -1711,7 +1710,7 @@ Overfull \hbox (72.06798pt too wide) in paragraph at lines 202--202
 g Parameters"][] 
  []
 
-<images/evaluation/hkg_topology.png, id=995, 1134.639pt x 835.2003pt>
+<images/evaluation/hkg_topology.png, id=999, 1134.639pt x 835.2003pt>
 File: images/evaluation/hkg_topology.png Graphic file (type png)
 <use images/evaluation/hkg_topology.png>
 Package pdftex.def Info: images/evaluation/hkg_topology.png  used on input line
@@ -1773,13 +1772,13 @@ Package fancyhdr Warning: \headheight is too small (15.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-9.80847pt}.
 
 [52]
-<images/llama_learning_rate.png, id=1064, 3382.6375pt x 1776.6375pt>
+<images/llama_learning_rate.png, id=1068, 3382.6375pt x 1776.6375pt>
 File: images/llama_learning_rate.png Graphic file (type png)
 <use images/llama_learning_rate.png>
 Package pdftex.def Info: images/llama_learning_rate.png  used on input line 96.
 
 (pdftex.def)             Requested size: 172.79846pt x 90.73473pt.
-<images/qwen_learning_rate.png, id=1065, 3382.6375pt x 1776.6375pt>
+<images/qwen_learning_rate.png, id=1069, 3382.6375pt x 1776.6375pt>
 File: images/qwen_learning_rate.png Graphic file (type png)
 <use images/qwen_learning_rate.png>
 Package pdftex.def Info: images/qwen_learning_rate.png  used on input line 102.
@@ -1799,12 +1798,12 @@ Chapter 7.
 [56
 
 ]
-<images/Super_Complex_2-1.png, id=1092, 597.9138pt x 845.0772pt>
+<images/Super_Complex_2-1.png, id=1096, 597.9138pt x 845.0772pt>
 File: images/Super_Complex_2-1.png Graphic file (type png)
 <use images/Super_Complex_2-1.png>
 Package pdftex.def Info: images/Super_Complex_2-1.png  used on input line 46.
 (pdftex.def)             Requested size: 172.79846pt x 244.22795pt.
-<images/layout_visualizations-1.png, id=1093, 1245.453pt x 1760.979pt>
+<images/layout_visualizations-1.png, id=1097, 1245.453pt x 1760.979pt>
 File: images/layout_visualizations-1.png Graphic file (type png)
 <use images/layout_visualizations-1.png>
 Package pdftex.def Info: images/layout_visualizations-1.png  used on input line
@@ -1842,13 +1841,13 @@ Overfull \hbox (33.38374pt too wide) in paragraph at lines 177--178
  []
 
 [62] [63]
-<images/evaluation/table_unmasked.png, id=1179, 1542.76375pt x 2023.56pt>
+<images/evaluation/table_unmasked.png, id=1183, 1542.76375pt x 2023.56pt>
 File: images/evaluation/table_unmasked.png Graphic file (type png)
 <use images/evaluation/table_unmasked.png>
 Package pdftex.def Info: images/evaluation/table_unmasked.png  used on input li
 ne 218.
 (pdftex.def)             Requested size: 172.79846pt x 226.63718pt.
-<images/evaluation/table_masked.png, id=1180, 1542.76375pt x 2023.56pt>
+<images/evaluation/table_masked.png, id=1184, 1542.76375pt x 2023.56pt>
 File: images/evaluation/table_masked.png Graphic file (type png)
 <use images/evaluation/table_masked.png>
 Package pdftex.def Info: images/evaluation/table_masked.png  used on input line
@@ -1914,28 +1913,33 @@ Appendix A.
 
  (./appendix/lists.tex
 Appendix B.
-[76
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [76
 
 
 
+
+]
+[77] [78
 
 ]
 Appendix C.
 (./thesis.lof
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [77
-
+ [79
 
 ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [78])
+ [80])
 \tf@lof=\write9
 \openout9 = `thesis.lof'.
 
 
-[79] [80
+[81] [82
 
 ]
 Appendix D.
@@ -1946,43 +1950,54 @@ Appendix D.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [81
+ [83
 
 ]
-[82]
+[84]
 Appendix E.
-(./thesis.loa)
-\tf@loa=\write11
-\openout11 = `thesis.loa'.
+[85
 
-) [83
+
+] (./thesis.lol)
+\tf@lol=\write11
+\openout11 = `thesis.lol'.
+
+ [86
+
+]
+Appendix F.
+(./thesis.loa)
+\tf@loa=\write12
+\openout12 = `thesis.loa'.
+
+) [87
 
 
 ]
 \openout2 = `appendix/bib.aux'.
 
  (./appendix/bib.tex
-Appendix F.
+Appendix G.
 (./bu.aux)
 \openout5 = `bu.aux'.
 
  (./thesis.bbl (./thesis.brf)
-\tf@brf=\write12
-\openout12 = `thesis.brf'.
+\tf@brf=\write13
+\openout13 = `thesis.brf'.
 
- [84
-
-
+ [88
 
 
-] [85] [86]
+
+
+] [89] [90]
 Underfull \hbox (badness 1622) in paragraph at lines 257--257
 []\T1/futs/m/n/11.826 (+20) [\T1/futs/m/sc/11.826 (+20) Zhao \T1/futs/m/n/11.82
 6 (+20) et al. 2024] Z. Zhao, H. Wang, P. Jiang et al.  \T1/futs/b/n/11.826 (+2
 0) DocLayout-
  []
 
-[87]) [88]) [89
+[91]) [92]) [93
 
 
 
@@ -2000,16 +2015,16 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 42846B725747B94537398AB0F2F7AEF4;22327.
+(rerunfilecheck)             Checksum: C41B7F5D77C44B9EA2DB753DE3E398CC;22458.
 Package rerunfilecheck Info: File `thesis.brf' has not changed.
-(rerunfilecheck)             Checksum: 686C278FF3C5BC496B912345858D14F6;3771.
+(rerunfilecheck)             Checksum: A56615EDDBD773F11E916C6F422EDDE1;3771.
  ) 
 Here is how much of TeX's memory you used:
- 45659 strings out of 474222
- 978116 string characters out of 5748734
+ 45693 strings out of 474222
+ 978652 string characters out of 5748734
  2042975 words of memory out of 5000000
- 65644 multiletter control sequences out of 15000+600000
- 825989 words of font info for 902 fonts, out of 8000000 for 9000
+ 65663 multiletter control sequences out of 15000+600000
+ 830463 words of font info for 906 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
  104i,19n,134p,1131b,2380s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/fourier/fourier-bb.pfb></us
@@ -2023,10 +2038,10 @@ fonts/type1/adobe/utopia/putb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/
 adobe/utopia/putr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/adobe/utopia
 /putri8a.pfb></usr/share/texmf/fonts/type1/public/tex-gyre/qcrr.pfb></usr/share
 /texlive/texmf-dist/fonts/type1/urw/avantgar/uagd8a.pfb>
-Output written on thesis.pdf (97 pages, 4146166 bytes).
+Output written on thesis.pdf (101 pages, 4149134 bytes).
 PDF statistics:
- 1701 PDF objects out of 1728 (max. 8388607)
- 1545 compressed objects within 16 object streams
- 430 named destinations out of 1000 (max. 500000)
- 170269 words of extra memory for PDF output out of 184870 (max. 10000000)
+ 1736 PDF objects out of 2073 (max. 8388607)
+ 1576 compressed objects within 16 object streams
+ 436 named destinations out of 1000 (max. 500000)
+ 176421 words of extra memory for PDF output out of 184870 (max. 10000000)
 

@@ -88,8 +88,9 @@
 \contentsline {section}{\numberline {A.1}Hierarchical Knowledge Graph (HKG) JSON Serialization}{73}{section.A.1}%
 \contentsline {section}{\numberline {A.2}Visual Case Study: Mitigating Structural Hallucination}{75}{section.A.2}%
 \contentsline {chapter}{\numberline {B}Abbreviations and Notations}{76}{appendix.B}%
-\contentsline {subsubsection}{Pipeline and Engineering Acronyms}{76}{subsubsection*.25}%
-\contentsline {chapter}{\numberline {C}List of Figures}{77}{appendix.C}%
-\contentsline {chapter}{\numberline {D}List of Tables}{81}{appendix.D}%
-\contentsline {chapter}{\numberline {E}List of Algorithms}{83}{appendix.E}%
-\contentsline {chapter}{\numberline {F}Bibliography}{84}{appendix.F}%
+\contentsline {subsubsection}{Pipeline and Engineering Acronyms}{77}{subsubsection*.25}%
+\contentsline {chapter}{\numberline {C}List of Figures}{79}{appendix.C}%
+\contentsline {chapter}{\numberline {D}List of Tables}{83}{appendix.D}%
+\contentsline {chapter}{\numberline {E}List of Listings}{85}{appendix.E}%
+\contentsline {chapter}{\numberline {F}List of Algorithms}{87}{appendix.F}%
+\contentsline {chapter}{\numberline {G}Bibliography}{88}{appendix.G}%

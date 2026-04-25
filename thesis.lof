@@ -15,10 +15,8 @@
 \contentsline {figure}{\numberline {5.3}{\ignorespaces Librarian HKG: Clustered Component Ontology. A visual representation of the deep, multi-hierarchical structure extracted natively from the document, mapping products to their nested components, connectors, and semantic pins.}}{45}{figure.caption.11}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {6.1}{\ignorespaces Peak VRAM consumption comparison for 4-bit LoRA distillation showing Unsloth preventing RTX 3090 (24GB) Out-of-Memory failures.}}{52}{figure.caption.12}%
-\contentsline {figure}{\numberline {6.2}{\ignorespaces Llama-Vision 11B Learning Rate.}}{53}{figure.caption.13}%
-\contentsline {figure}{\numberline {6.3}{\ignorespaces Qwen2-VL 7B Learning Rate.}}{53}{figure.caption.13}%
-\contentsline {figure}{\numberline {6.4}{\ignorespaces Learning rate schedules for the Dual-Student Architecture. Both models utilize a linear warmup phase followed by a cosine decay trajectory to stabilize LoRA weight updates.}}{53}{figure.caption.13}%
-\contentsline {figure}{\numberline {6.5}{\ignorespaces LoRA Training Loss curves derived directly from Weights \& Biases telemetry. The Qwen2-VL text-only extraction model converged extremely rapidly, stabilizing at a terminal loss of $\sim $0.12 in just 200 steps due to the absence of noisy visual parameters. The Llama-Vision model, processing dense 1024x1024 visual tensors, required a full 1000 steps to stabilize around a loss of 0.08, successfully avoiding overfitting against the complex engineering schematics.}}{54}{figure.caption.14}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Learning rate schedules for the Dual-Student Architecture. Both models utilize a linear warmup phase followed by a cosine decay trajectory to stabilize LoRA weight updates.}}{53}{figure.caption.13}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces LoRA Training Loss curves derived directly from Weights \& Biases telemetry. The Qwen2-VL text-only extraction model converged extremely rapidly, stabilizing at a terminal loss of $\sim $0.12 in just 200 steps due to the absence of noisy visual parameters. The Llama-Vision model, processing dense 1024x1024 visual tensors, required a full 1000 steps to stabilize around a loss of 0.08, successfully avoiding overfitting against the complex engineering schematics.}}{54}{figure.caption.14}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {7.1}{\ignorespaces Visual layout detection (Before vs After): Comparison of the raw engineering catalog page against the corresponding DocLayout-YOLO prediction tensors. The model cleanly encapsulates complex tables, pin-assignment figures, and multi-column text blocks, ensuring high mAP and spatial recall.}}{58}{figure.caption.16}%
 \contentsline {figure}{\numberline {7.2}{\ignorespaces Retrieval accuracy comparison: Flat Markdown Chunking vs. Hierarchical Knowledge Graph (HKG) Chunking. The injection of layout-aware section breadcrumbs significantly improves context-dependent query resolution.}}{62}{figure.caption.19}%
@@ -28,6 +26,7 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {A.1}{\ignorespaces The model erroneously registers internal schematic wires as table row delineators, causing infinite loop text generation.}}{75}{figure.caption.24}%
 \contentsline {figure}{\numberline {A.2}{\ignorespaces With the internal graph masked, the extracted JSON adheres perfectly to the Pydantic schema without dropping into hallucination loops.}}{75}{figure.caption.24}%
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
