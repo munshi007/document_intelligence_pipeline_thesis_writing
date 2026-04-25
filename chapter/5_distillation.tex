@@ -83,7 +83,11 @@ With Unsloth integrated and executing atop 4-bit quantized base weights, trainin
 
 Splitting the cognitive load across two distinct datasets prevented early memorization. Rather than struggling to learn both spatial mapping and JSON formatting simultaneously, the models isolated their respective tasks rapidly.
 
-Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss trajectories recorded for both the Llama-Vision (Visual-to-Markdown) and Qwen2-VL (Markdown-to-JSON) models over 1,000 steps. To ensure stable convergence and prevent gradient instability across the pre-trained weights, a cosine decay learning rate schedule with a linear warmup phase was enforced during training, as visualized in Figure \ref{fig:learning_rate_curves}.
+Figure \ref{fig:dual_loss_curve} illustrates the Cross-Entropy training loss trajectories recorded for both the Llama-Vision (Visual-to-Markdown) and Qwen2-VL (Markdown-to-JSON) models over 1,000 steps. 
+
+When fine-tuning large pre-trained language models via LoRA, the learning rate dictates the step size of the optimizer as it updates the low-rank matrices. Selecting a static learning rate often results in sub-optimal convergence: if set too high, early gradients can destructively override pre-existing foundational weights, whereas setting it too low severely prolongs training time. To resolve this, dynamic scheduling is employed. 
+
+As visualized in Figure \ref{fig:learning_rate_curves}, both student models were trained using a cosine decay schedule prefixed by a linear warmup phase. During the initial warmup phase, the learning rate is progressively scaled from zero to its maximum defined threshold. This prevents early, high-variance loss signals from inducing parameter divergence. Once the maximum threshold is reached, the cosine decay gradually tapers the learning rate along a trigonometric curve. This deceleration ensures that as the model approaches the theoretical loss minimum, the gradient step sizes become infinitesimally small, allowing the optimizer to settle smoothly into the optimal parameter configuration without overshooting.
 
 \begin{figure}[htbp]
 \centering
