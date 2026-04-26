@@ -92,5 +92,5 @@
 \contentsline {chapter}{\numberline {C}List of Figures}{79}{appendix.C}%
 \contentsline {chapter}{\numberline {D}List of Tables}{83}{appendix.D}%
 \contentsline {chapter}{\numberline {E}List of Listings}{85}{appendix.E}%
-\contentsline {chapter}{\numberline {F}List of Algorithms}{87}{appendix.F}%
-\contentsline {chapter}{\numberline {G}Bibliography}{88}{appendix.G}%
+\contentsline {chapter}{\numberline {F}List of Algorithms}{86}{appendix.F}%
+\contentsline {chapter}{\numberline {G}Bibliography}{87}{appendix.G}%
