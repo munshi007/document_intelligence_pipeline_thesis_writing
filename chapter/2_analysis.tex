@@ -67,7 +67,7 @@ The new image dimensions become $W_{new} = W_{orig} \times S$ and $H_{new} = H_{
 \end{align}
 The padded tensor $\mathbf{T}_{1024} \in \mathbb{R}^{1024 \times 1024 \times 3}$ is then normalized by dividing the RGB channels by $255.0$ and applying standard mean variance distributions. This ensures uniform convolution depth for both A4 industrial datasheets and non-standard engineering schematics.
 
-The model receives this tensor and directly predicts a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$ through its multi-scale feature encoder. Each proposal is parameterized as absolute coordinates relative to the input tensor: $(x_{min}, y_{min}, x_{max}, y_{max})$. An MLP classification head assigns a categorical probability distribution $C_i \in \{ \text{Title, Heading, Text, Table, Figure, Caption, Footer} \}$ to each proposed region.
+The model receives this tensor and directly predicts a fixed set of bounding box proposals $B = \{b_1, b_2, ..., b_n\}$ through its multi-scale feature encoder. Each proposal is parameterized as absolute coordinates relative to the input tensor: $(x_{min}, y_{min}, x_{max}, y_{max})$. An MLP classification head then assigns a categorical probability distribution $C_i$ to each proposed region, mapping it to one of the primary semantic classes: \textit{Title}, \textit{Heading}, \textit{Text}, \textit{Table}, \textit{Figure}, \textit{Caption}, or \textit{Footer}.
 
 Figure \ref{fig:doclayout_data_flow} maps the explicit dimensional transformation of the input data as it passes through the DocLayout-YOLO pre-processing and inference modules.
 
